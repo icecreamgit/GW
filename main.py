@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import random
 
 def calculateYwithoutError(t, x1, x2, size):
     y_ = np.zeros((size, ))
@@ -82,6 +82,43 @@ def T0(xMassive, j, h):
     for value in xMassive:
         mean += value[j]
     return mean / h
+class Transform:
+    # Меняем горизонтальный вид элементов матрицы на вертикальный
+    xInterm = [[], []]
+    def __init__(self, X, n):
+        self.X = X
+        self.n = n
+    def MatrixInVector(self, X=None, n=None):
+        # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
+        if isinstance(X, str):
+            count = 0
+            for line in self.xInterm:
+                count += 1
+                for i in range(self.n):
+                    line.append(self.X[i][count])
+        else:
+            count = 0
+            for line in self.xInterm:
+                count += 1
+                for i in range(n):
+                    line.append(X[i][count])
+    def GetX(self):
+        return self.xInterm
+
+def TestSelectiveVaribles(X, Y, n):
+    xObject = Transform(X, n)
+    xObject.MatrixInVector(X="a")
+    yNew = Y.tolist()
+    xNew = xObject.GetX()
+    h = [i for i in range(n)]
+    for i in range(0, len(xNew)):
+        for j in range(int(0.2 * n)):
+            random_ = random.choice(h)
+            xNew[i].pop(random_)
+            if i == 0:
+                yNew.pop(random_)
+            h.pop(random_)
+    return xNew, yNew
 def MCD(X, n):
     p = 2
     B, xInterm, di = [], [[], []], []
@@ -119,6 +156,7 @@ def main():
     yTrue, xAll = ylinealModel(n=n, tetta=tetta, outlier=Outlier)
     X = np.zeros((len(tetta), n))
     X = filingMatrixX(X, lineToColum(xAll, n, tetta), tetta)
+    xTest, yTest = TestSelectiveVaribles(X, yTrue, n)
     MCD(X, n)
     tettaNew = LMSMatrix(X, yTrue.reshape(n, 1))
     print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
