@@ -18,14 +18,19 @@ def Painting(x, y):
 
 def ylinealModel(n, tetta, outlier):
     # Search y without observation error
-    x1 = np.random.uniform(0., 10.0, n)
-    x2 = np.random.uniform(0., 10.0, n)
+    x1 = sorted(np.random.uniform(0., 10., n))
+    x2 = sorted(np.random.uniform(0., 10., n))
 
     y = calculateYwithoutError(tetta, x1, x2, n)
     xall = []
 
     # Search observation error
     e = np.random.binomial(n=1., p=(1 - outlier), size=n)
+
+    counter = 0
+    for i in e:
+        if i == 0:
+            counter += 1
 
     # Search y_res:
     varMainObservations = 0.01
@@ -65,10 +70,6 @@ def filingMatrixX(x, xall, tetta):
     for stepi in range(1, nTetta):
         for stepj in range(n):
             x[stepi][stepj] = xall[stepi - 1][stepj]
-    # for stepi in range(nTetta):
-    #     for stepj in range(n):
-    #         for stepz in range(stepj, n):
-    #             x[stepi][stepj] += x[stepi][stepz]
     return x.transpose()
 
 def relativeError(tettaTrue, tettanew):
@@ -76,19 +77,53 @@ def relativeError(tettaTrue, tettanew):
     for stepi in range(n):
         counter += pow((tettaTrue[stepi] - tettanew[stepi]), 2) / pow(tettaTrue[stepi], 2)
     return counter
+def T0(xMassive, j, h):
+    mean = 0
+    for value in xMassive:
+        mean += value[j]
+    return mean / h
+def MCD(X, n):
+    p = 2
+    B, xInterm, di = [], [[], []], []
+    mean_X0, mean_X1, count = 0, 0, 0
 
+    while 1:
+        h = int((n + p + 1) / 2)
+        for line in xInterm:
+            count += 1
+            for i in range(h):
+                line.append(X[i][count])
+
+        data = np.array([xInterm[0], xInterm[1]])
+        S = np.cov(data, bias=True)
+
+        if np.linalg.det(S) == 0:
+            print("det(S) == 0!")
+            break
+
+        mean_X0 = T0(xInterm, 0, h)
+        mean_X1 = T0(xInterm, 1, h)
+        for i in range(h):
+            B.append([[xInterm[0][i] - mean_X0], [xInterm[1][i] - mean_X1]])
+
+        for i in range(h):
+            a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
+            di.append(np.dot(a, np.array(B[i]))[0][0])
+        xInterm.clear()
+    return 0
 def main():
-    N, tetta, tettaNew = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.])
+    n, tetta, tettaNew = 10, np.array([1., 1.5, 2.]), np.array([0., 0., 0.])
 
     Outlier = 0.
-    while Outlier < 0.25:
-        yTrue, xAll = ylinealModel(n=N, tetta=tetta, outlier=Outlier)
-        X = np.zeros((len(tetta), N))
-        X = filingMatrixX(X, lineToColum(xAll, N, tetta), tetta)
-        tettaNew = LMSMatrix(X, yTrue.reshape(N, 1))
-        print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
-        print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
-        Outlier += 0.05
+
+    yTrue, xAll = ylinealModel(n=n, tetta=tetta, outlier=Outlier)
+    X = np.zeros((len(tetta), n))
+    X = filingMatrixX(X, lineToColum(xAll, n, tetta), tetta)
+    MCD(X, n)
+    tettaNew = LMSMatrix(X, yTrue.reshape(n, 1))
+    print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
+    print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
+    Outlier += 0.05
 
 if __name__ == '__main__':
     main()
