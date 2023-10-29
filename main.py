@@ -189,24 +189,40 @@ class MCD:
                 xInterm.clear()
         B.clear()
         xInterm.clear()
+    def GetNewX(self, X, p, n, Y, xNew):
+        xObject = Transform(X, n)
+        dh = MCD.SetHValuesRelativeDistances(self, p=p, n=n)
+        xInterm = xObject.MatrixInVector([[], []], X="a")
+        yNew = []
+        for j in dh:
+            xNew.append([1., xInterm[0][j[0]], xInterm[1][j[0]]])
+            yNew.append(Y[j[0]])
+        return np.array(xNew), np.array(yNew)
+    def SetHValuesRelativeDistances(self, p, n):
+        h = int((n + p + 1) / 2)
+        return [self.di[i] for i in range(h)]
     def GetRelativeDistances(self):
         return self.di
+
 
 def main():
     n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 2
     h = int((n + p + 1) / 2)
-    Outlier = 0.
+    Outlier = 0.3
 
     yTrue, xAll = ylinealModel(n=n, tetta=tetta, outlier=Outlier)
     X = np.zeros((len(tetta), n))
     X = filingMatrixX(X, lineToColum(xAll, n, tetta), tetta)
+
     xTest, yTest = TestSelectiveVaribles(X, yTrue, n, testFactor=0.2)
-    tettaNew = LMSMatrix(xTest, yTest.reshape(len(yTest), 1))
+    tettaTest = LMSMatrix(xTest, yTest.reshape(len(yTest), 1))
+
     mcdMethod = MCD(X, n, yTrue)
     mcdMethod.FindRelativeDistances(X=X, n=n,mode="TestTask")
-    di = mcdMethod.GetRelativeDistances()
+    xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
+    tettaMCD = LMSMatrix(xMCD, yMCD.reshape(len(yMCD), 1))
 
-    tettaNew = LMSMatrix(X, yTrue.reshape(n, 1))
+    tettaLMS = LMSMatrix(X, yTrue.reshape(n, 1))
     print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
     print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
     Outlier += 0.05
