@@ -1,57 +1,7 @@
 import numpy as np
 import random
 import MCD
-def calculateYwithoutError(t, x1, x2, size):
-    y_ = np.zeros((size, ))
-    for i in range(size):
-        y_[i] = t[0] + t[1] * x1[i] + t[2] * x2[i]
-    return y_
-
-def ylinealModel(n, tetta, outlier):
-    # Search y without observation error
-    x1 = sorted(np.random.uniform(0., 10., n))
-    x2 = sorted(np.random.uniform(0., 10., n))
-
-    y = calculateYwithoutError(tetta, x1, x2, n)
-    xall = []
-
-    # Search observation error
-    e = np.random.binomial(n=1., p=(1 - outlier), size=n)
-
-    counter = 0
-    for i in e:
-        if i == 0:
-            counter += 1
-
-    # Search y_res:
-    varMainObservations = 0.01
-    varEmissions = 5.
-    y_res = np.zeros((n,))
-
-    for i in range(n):
-        if e[i] == 1:
-            y_res[i] = y[i] + np.random.normal(0, np.sqrt(varMainObservations))
-        else:
-            y_res[i] = y[i] + np.random.normal(0, np.sqrt(varEmissions))
-    for i in range(n):
-        xall.append(x1[i])
-    for i in range(n):
-        xall.append(x2[i])
-    return y_res, xall
-
-def lineToColum(x, n, tetta):
-    # Преобразование входной строки x в матрицу
-    nTetta = len(tetta) - 1
-    xnew = np.zeros((nTetta, n))
-    counterDel = 0
-    for stepi in range(nTetta):
-        for stepj in range(n):
-            xnew[stepi][stepj] = x[counterDel]
-            counterDel += 1
-    return xnew
-
-def LMSMatrix(x, y):
-    return np.dot((np.dot(np.linalg.inv(np.dot(x.transpose(), x)), x.transpose())), y)
+import LMS
 
 def filingMatrixX(x, xall, tetta):
     nTetta = len(tetta)
@@ -102,20 +52,21 @@ def main():
     n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 2
     h = int((n + p + 1) / 2)
     Outlier = 0.05
+    LMSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
 
-    yTrue, xAll = ylinealModel(n=n, tetta=tetta, outlier=Outlier)
+    yTrue, xAll = LMSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
     X = np.zeros((len(tetta), n))
-    X = filingMatrixX(X, lineToColum(xAll, n, tetta), tetta)
+    X = filingMatrixX(X, LMSObject.lineToColum(xAll, n, tetta), tetta)
 
     xTest, yTest = TestSelectiveVaribles(X, yTrue, n, testFactor=0.2)
-    tettaTest = LMSMatrix(xTest, yTest.reshape(len(yTest), 1))
+    tettaTest = LMSObject.LMSMatrix(xTest, yTest.reshape(len(yTest), 1))
 
     mcdMethod = MCD.MCD(X, n, yTrue)
     mcdMethod.FindRelativeDistances(X=X, n=n,mode="TestTask")
     xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
-    tettaMCD = LMSMatrix(xMCD, yMCD.reshape(len(yMCD), 1))
+    tettaMCD = LMSObject.LMSMatrix(xMCD, yMCD.reshape(len(yMCD), 1))
 
-    tettaLMS = LMSMatrix(X, yTrue.reshape(n, 1))
+    tettaLMS = LMSObject.LMSMatrix(X, yTrue.reshape(n, 1))
     print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
     print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
     Outlier += 0.05

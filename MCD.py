@@ -1,5 +1,5 @@
 import numpy as np
-
+import math
 def T0(xMassive, j, h):
     mean = 0
     for value in xMassive:
@@ -70,7 +70,7 @@ class MCD:
                 data = np.array([xInterm[0], xInterm[1]])
                 S = np.cov(data, bias=True)
 
-                if np.linalg.det(S) == 0:
+                if math.isclose(np.linalg.det(S), 0):
                     print("det(S) == 0!")
                     break
 
