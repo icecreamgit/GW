@@ -84,32 +84,34 @@ def T0(xMassive, j, h):
     return mean / h
 class Transform:
     # Меняем горизонтальный вид элементов матрицы на вертикальный
-    xInterm = [[], []]
     def __init__(self, X, n):
         self.X = X
         self.n = n
-    def MatrixInVector(self, X=None, n=None):
+    def MatrixInVector(self, xInterm, X=None, n=None):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
         if isinstance(X, str):
             count = 0
-            for line in self.xInterm:
+            for line in xInterm:
                 count += 1
                 for i in range(self.n):
                     line.append(self.X[i][count])
         else:
             count = 0
-            for line in self.xInterm:
+            for line in xInterm:
                 count += 1
                 for i in range(n):
                     line.append(X[i][count])
-    def GetX(self):
-        return self.xInterm
+        return xInterm
+    def VectorInMatrix(self, X, xNew):
+        n = len(X[0])
+        for j in range(n):
+            xNew.append([1., X[0][j], X[1][j]])
+        return np.array(xNew)
 
 def TestSelectiveVaribles(X, Y, n):
     xObject = Transform(X, n)
-    xObject.MatrixInVector(X="a")
+    xNew = xObject.MatrixInVector(xInterm=[[], []], X="a")
     yNew = Y.tolist()
-    xNew = xObject.GetX()
     h = [i for i in range(n)]
     for i in range(0, len(xNew)):
         for j in range(int(0.2 * n)):
@@ -117,8 +119,10 @@ def TestSelectiveVaribles(X, Y, n):
             xNew[i].pop(random_)
             if i == 0:
                 yNew.pop(random_)
-            h.pop(random_)
-    return xNew, yNew
+            h.remove(random_)
+    xNewArray = xObject.VectorInMatrix(xNew, [])
+    xNew.clear()
+    return xNewArray, np.array(yNew)
 def MCD(X, n):
     p = 2
     B, xInterm, di = [], [[], []], []
@@ -126,11 +130,12 @@ def MCD(X, n):
 
     while 1:
         h = int((n + p + 1) / 2)
+        # Можно заменить данный код на экземпляр класса
         for line in xInterm:
             count += 1
             for i in range(h):
                 line.append(X[i][count])
-
+        ##############################################
         data = np.array([xInterm[0], xInterm[1]])
         S = np.cov(data, bias=True)
 
