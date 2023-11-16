@@ -49,24 +49,24 @@ def TestSelectiveVaribles(X, Y, n, testFactor):
     return xNewArray, np.array(yNew)
 
 def main():
-    n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 2
+    n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 3
     h = int((n + p + 1) / 2)
     Outlier = 0.05
     LMSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
 
     yTrue, xAll = LMSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
     X = np.zeros((len(tetta), n))
-    X = filingMatrixX(X, LMSObject.lineToColum(xAll, n, tetta), tetta)
 
-    xTest, yTest = TestSelectiveVaribles(X, yTrue, n, testFactor=0.2)
+    mcdMethod = MCD.MCD(xAll, yTrue, n, p)
+    mcdMethod.FindRelativeDistances(X=xAll, n=n, mode="TestTask")
+    # xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
+    # tettaMCD = LMSObject.LMSMatrix(xMCD, yMCD.reshape(len(yMCD), 1))
+
+    xTest, yTest = TestSelectiveVaribles(X=filingMatrixX(X, LMSObject.lineToColum(xAll, n, tetta), tetta), Y=yTrue, n=n, testFactor=0.2)
     tettaTest = LMSObject.LMSMatrix(xTest, yTest.reshape(len(yTest), 1))
-
-    mcdMethod = MCD.MCD(X, n, yTrue)
-    mcdMethod.FindRelativeDistances(X=X, n=n,mode="TestTask")
-    xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
-    tettaMCD = LMSObject.LMSMatrix(xMCD, yMCD.reshape(len(yMCD), 1))
-
     tettaLMS = LMSObject.LMSMatrix(X, yTrue.reshape(n, 1))
+
+
     print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
     print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
     Outlier += 0.05

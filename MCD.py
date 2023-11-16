@@ -1,10 +1,8 @@
+import random
+
 import numpy as np
 import math
-def T0(xMassive, j, h):
-    mean = 0
-    for value in xMassive:
-        mean += value[j]
-    return mean / h
+
 
 class Transform:
     # Меняем горизонтальный вид элементов матрицы на вертикальный
@@ -35,68 +33,109 @@ class Transform:
 def KeyFuncion(item):
     return item[1]
 class MCD:
-    def __init__(self, X, n, Y):
+    def __init__(self, X, Y, n, p):
         self.X = X
         self.n = n
+        self.p = p
         self.Y = Y
+    def LineInVector(self, vector):
+        newList = [[], []]
+        counter = 0
+        for line in newList:
+            for j in range(self.n):
+                line.append(vector[counter])
+                counter += 1
+        return newList
+    def CreateNewX(self, data, h):
+        newList = [[], []]
+        vector = [i for i in range(self.n)]
+
+        for i in range(h):
+            item = random.choice(vector)
+            newList[0]. append(data[0][item])
+            newList[1].append(data[1][item])
+            vector.remove(item)
+        return newList
+    def CreateNewListCstep(self, data, di, h):
+        newList = [[], []]
+        for i in range(h):
+            index = di[i][0]
+            newList[0].append(data[0][index])
+            newList[1].append(data[1][index])
+        return newList
+    def T0(self, xMassive, h):
+        mean = 0.
+        for value in xMassive:
+            mean += value
+        return mean / h
+
+    def Cstep(self, data, sComparision, h):
+        B, di = [], []
+
+        S = np.cov(data, bias=True)
+        if np.linalg.det(S) == np.linalg.det(sComparision):
+            print("det(S) == 0!")
+
+        mean_X0 = self.T0(data[0], h)
+        mean_X1 = self.T0(data[1], h)
+        for i in range(h):
+            B.append([[data[0][i] - mean_X0], [data[1][i] - mean_X1]])
+
+        for i in range(h):
+            a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
+            di.append([i, np.dot(a, np.array(B[i]))[0][0]])
+        di.sort(key=KeyFuncion)
+        return di
 
     def FindRelativeDistances(self, X, n, mode):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
-        B, xInterm, self.di = [], [[], []], []
-        xObject = Transform(X, n)
-        p = 2
+        B, xInterm, sComparision = [], [[], []], np.zeros((2, 2))
 
-        if (mode == "TestTask"):
-            xInterm = xObject.MatrixInVector([[], []], X="a")
-            data = np.array([xInterm[0], xInterm[1]])
-            S = np.cov(data, bias=True)
+        h = int((self.n + self.p + 1) / 2)
+        dataStart = self.LineInVector(X)
+        newData = self.CreateNewX(dataStart, h)
+        di = self.Cstep(newData, sComparision, h)
+        self.CreateNewListCstep(data=newData, di=di, h=h)
 
-            if np.linalg.det(S) == 0:
-                print("det(S) == 0!")
 
-            mean_X0 = T0(xInterm, 0, n)
-            mean_X1 = T0(xInterm, 1, n)
-            for i in range(n):
-                B.append([[xInterm[0][i] - mean_X0], [xInterm[1][i] - mean_X1]])
+        # if (mode == "TestTask"):
+        #     xInterm = xObject.MatrixInVector([[], []], X="a")
+        #     data = np.array([xInterm[0], xInterm[1]])
+        #     self.CreateNewList(data)
+        #     S = np.cov(data, bias=True)
+        #
+        #     if np.linalg.det(S) == 0:
+        #         print("det(S) == 0!")
+        #
+        #     mean_X0 = self.T0(xInterm, 0, n)
+        #     mean_X1 = self.T0(xInterm, 1, n)
+        #     for i in range(n):
+        #         B.append([[xInterm[0][i] - mean_X0], [xInterm[1][i] - mean_X1]])
+        #
+        #     for i in range(n):
+        #         a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
+        #         self.di.append([i, np.dot(a, np.array(B[i]))[0][0]])
+        #     self.di.sort(key=KeyFuncion)
+        # else:
+        #     while 1:
+        #         h = int((n + p + 1) / 2)
+        #         xInterm = xObject.MatrixInVector([[], []], X="a")
+        #         data = np.array([xInterm[0], xInterm[1]])
+        #         S = np.cov(data, bias=True)
+        #
+        #         if math.isclose(np.linalg.det(S), 0):
+        #             print("det(S) == 0!")
+        #             break
+        #
+        #         mean_X0 = self.T0(xInterm, 0, h)
+        #         mean_X1 = self.T0(xInterm, 1, h)
+        #         for i in range(h):
+        #             B.append([[xInterm[0][i] - mean_X0], [xInterm[1][i] - mean_X1]])
+        #
+        #         for i in range(h):
+        #             a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
+        #             self.di.append(np.dot(a, np.array(B[i]))[0][0])
+        #         xInterm.clear()
+        # B.clear()
+        # xInterm.clear()
 
-            for i in range(n):
-                a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
-                self.di.append([i, np.dot(a, np.array(B[i]))[0][0]])
-            self.di.sort(key=KeyFuncion)
-        else:
-            while 1:
-                h = int((n + p + 1) / 2)
-                xInterm = xObject.MatrixInVector([[], []], X="a")
-                data = np.array([xInterm[0], xInterm[1]])
-                S = np.cov(data, bias=True)
-
-                if math.isclose(np.linalg.det(S), 0):
-                    print("det(S) == 0!")
-                    break
-
-                mean_X0 = T0(xInterm, 0, h)
-                mean_X1 = T0(xInterm, 1, h)
-                for i in range(h):
-                    B.append([[xInterm[0][i] - mean_X0], [xInterm[1][i] - mean_X1]])
-
-                for i in range(h):
-                    a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
-                    self.di.append(np.dot(a, np.array(B[i]))[0][0])
-                xInterm.clear()
-        B.clear()
-        xInterm.clear()
-
-    def GetNewX(self, X, p, n, Y, xNew):
-        xObject = Transform(X, n)
-        dh = MCD.SetHValuesRelativeDistances(self, p=p, n=n)
-        xInterm = xObject.MatrixInVector([[], []], X="a")
-        yNew = []
-        for j in dh:
-            xNew.append([1., xInterm[0][j[0]], xInterm[1][j[0]]])
-            yNew.append(Y[j[0]])
-        return np.array(xNew), np.array(yNew)
-    def SetHValuesRelativeDistances(self, p, n):
-        h = int((n + p + 1) / 2)
-        return [self.di[i] for i in range(h)]
-    def GetRelativeDistances(self):
-        return self.di
