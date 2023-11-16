@@ -46,7 +46,8 @@ class MCD:
                 line.append(vector[counter])
                 counter += 1
         return newList
-    def CreateNewX(self, data, h):
+    def GameOfValues(self, data, h):
+        # Рандомно вытаскиваю из исходной матрицы Х значения
         newList = [[], []]
         vector = [i for i in range(self.n)]
 
@@ -57,6 +58,7 @@ class MCD:
             vector.remove(item)
         return newList
     def CreateNewListCstep(self, data, di, h):
+        # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
         for i in range(h):
             index = di[i][0]
@@ -64,6 +66,7 @@ class MCD:
             newList[1].append(data[1][index])
         return newList
     def T0(self, xMassive, h):
+        # Вычисляю мат. ожидание
         mean = 0.
         for value in xMassive:
             mean += value
@@ -71,33 +74,49 @@ class MCD:
 
     def Cstep(self, data, sComparision, h):
         B, di = [], []
+        flag = True
+        alarm = 1
+        S = np.zeros((2, 2))
+        while flag == True:
+            S = np.cov(data, bias=True)
+            if np.linalg.det(S) == np.linalg.det(sComparision):
+                alarm = 0
+                flag = False
+                continue
 
-        S = np.cov(data, bias=True)
-        if np.linalg.det(S) == np.linalg.det(sComparision):
-            print("det(S) == 0!")
+            mean_X0 = self.T0(data[0], h)
+            mean_X1 = self.T0(data[1], h)
+            for i in range(h):
+                B.append([[data[0][i] - mean_X0], [data[1][i] - mean_X1]])
 
-        mean_X0 = self.T0(data[0], h)
-        mean_X1 = self.T0(data[1], h)
-        for i in range(h):
-            B.append([[data[0][i] - mean_X0], [data[1][i] - mean_X1]])
-
-        for i in range(h):
-            a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
-            di.append([i, np.dot(a, np.array(B[i]))[0][0]])
-        di.sort(key=KeyFuncion)
-        return di
+            for i in range(h):
+                a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
+                di.append([i, np.dot(a, np.array(B[i]))[0][0]])
+            di.sort(key=KeyFuncion)
+            flag = False
+        return {"di": di, "S": S}, alarm
 
     def FindRelativeDistances(self, X, n, mode):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
-        B, xInterm, sComparision = [], [[], []], np.zeros((2, 2))
+        B, xInterm, diSaver500, di = [], [[], []], [], []
+        sMatrix = np.zeros((2, 2))
+        cStepNumber = 500
 
         h = int((self.n + self.p + 1) / 2)
         dataStart = self.LineInVector(X)
-        newData = self.CreateNewX(dataStart, h)
-        di = self.Cstep(newData, sComparision, h)
-        self.CreateNewListCstep(data=newData, di=di, h=h)
 
-
+        for i in range(cStepNumber):
+            newData = self.GameOfValues(dataStart, h)
+            for step in range(2):
+                container, alarm = self.Cstep(newData, sMatrix, h)
+                if alarm != 0:
+                    di = container["di"]
+                    sMatrix = container["S"]
+                    self.CreateNewListCstep(data=newData, di=di, h=h)
+                else:
+                    break
+            diSaver500.append([di, sMatrix])
+        a = 0
         # if (mode == "TestTask"):
         #     xInterm = xObject.MatrixInVector([[], []], X="a")
         #     data = np.array([xInterm[0], xInterm[1]])
