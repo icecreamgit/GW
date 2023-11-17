@@ -153,7 +153,6 @@ class MCD:
             newData = self.CreateNewListCstep(data=dataStart, di=diSaver10[i][1], h=h)
             sMatrix = np.zeros((2, 2))
             while alarm != 0:
-                # Тут остановился
                 container, alarm = self.Cstep(newData, np.linalg.det(sMatrix), h)
                 if alarm != 0:
                     di = container["di"]
@@ -162,7 +161,8 @@ class MCD:
                 else:
                     break
             diEndVector.append([np.linalg.det(sMatrix), di])
-
+        diSaver10.clear()
+        diEndVector.sort(key=KeyFuncion)
 
         x = self.ReturnVector(dataStart, diEndVector[0][1], h)
         y = np.array(self.ReturnY(diEndVector[0][1], h))
