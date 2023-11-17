@@ -5,13 +5,13 @@ import LMS
 
 def filingMatrixX(x, xall, tetta):
     nTetta = len(tetta)
-    n = len(x[0])
+    n = len(x)
     for stepi in range(n):
-        x[0][stepi] = 1.
-    for stepi in range(1, nTetta):
-        for stepj in range(n):
-            x[stepi][stepj] = xall[stepi - 1][stepj]
-    return x.transpose()
+        x[stepi][0] = 1.
+    for stepi in range(n):
+        for stepj in range(1, nTetta):
+            x[stepi][stepj] = xall[stepj - 1][stepi]
+    return x
 
 def relativeError(tettaTrue, tettanew):
     n, counter = len(tettaTrue), 0
@@ -55,16 +55,20 @@ def main():
     LMSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
 
     yTrue, xAll = LMSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
-    X = np.zeros((len(tetta), n))
+    X = np.zeros((n, len(tetta)))
+    X = filingMatrixX(X, LMSObject.lineToColum(xAll, n, tetta), tetta)
+
+    # xTest, yTest = TestSelectiveVaribles(X=X, Y=yTrue, n=n, testFactor=0.2)
+    # tettaTest = LMSObject.LMSMatrix(xTest, yTest.reshape(len(yTest), 1))
+    tettaLMS = LMSObject.LMSMatrix(X, yTrue.reshape(n, 1))
 
     mcdMethod = MCD.MCD(xAll, yTrue, n, p)
-    mcdMethod.FindRelativeDistances(X=xAll, n=n, mode="TestTask")
+    xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, mode="TestTask")
+    xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LMSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
     # xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
-    # tettaMCD = LMSObject.LMSMatrix(xMCD, yMCD.reshape(len(yMCD), 1))
+    tettaMCD = LMSObject.LMSMatrix(xMatrixMCD, yVectorMCD.reshape(h, 1))
 
-    xTest, yTest = TestSelectiveVaribles(X=filingMatrixX(X, LMSObject.lineToColum(xAll, n, tetta), tetta), Y=yTrue, n=n, testFactor=0.2)
-    tettaTest = LMSObject.LMSMatrix(xTest, yTest.reshape(len(yTest), 1))
-    tettaLMS = LMSObject.LMSMatrix(X, yTrue.reshape(n, 1))
+
 
 
     print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)

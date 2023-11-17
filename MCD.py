@@ -31,7 +31,8 @@ class Transform:
         return np.array(xNew)
 
 def KeyFuncion(item):
-    return item[1]
+    return item[0]
+
 class MCD:
     def __init__(self, X, Y, n, p):
         self.X = X
@@ -45,6 +46,22 @@ class MCD:
             for j in range(self.n):
                 line.append(vector[counter])
                 counter += 1
+        return newList
+
+    def ReturnVector(self, data, di, h):
+        newList = []
+        for i in range(h):
+            index = di[i][1]
+            newList.append(data[0][index])
+        for i in range(h):
+            index = di[i][1]
+            newList.append(data[1][index])
+        return newList
+    def ReturnY(self, di, h):
+        newList = []
+        for i in range(h):
+            index = di[i][1]
+            newList.append(self.Y[index])
         return newList
     def GameOfValues(self, data, h):
         # Рандомно вытаскиваю из исходной матрицы Х значения
@@ -61,7 +78,7 @@ class MCD:
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
         for i in range(h):
-            index = di[i][0]
+            index = di[i][1]
             newList[0].append(data[0][index])
             newList[1].append(data[1][index])
         return newList
@@ -73,13 +90,15 @@ class MCD:
         return mean / h
 
     def Cstep(self, data, sComparision, h):
+        # data - матрица из двух векторов: х1 и х2
         B, di = [], []
         flag = True
         alarm = 1
         S = np.zeros((2, 2))
         while flag == True:
             S = np.cov(data, bias=True)
-            if np.linalg.det(S) == np.linalg.det(sComparision):
+            a0 = np.linalg.det(S)
+            if math.isclose(a0, sComparision):
                 alarm = 0
                 flag = False
                 continue
@@ -91,70 +110,61 @@ class MCD:
 
             for i in range(h):
                 a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
-                di.append([i, np.dot(a, np.array(B[i]))[0][0]])
+                di.append([np.dot(a, np.array(B[i]))[0][0], i])
             di.sort(key=KeyFuncion)
             flag = False
         return {"di": di, "S": S}, alarm
 
     def FindRelativeDistances(self, X, n, mode):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
-        B, xInterm, diSaver500, di = [], [[], []], [], []
+        diSaver10, diSaver500, diEndVector, di = [], [], [], []
         sMatrix = np.zeros((2, 2))
-        cStepNumber = 500
+        cStepNumber, lowestNumber = 500, 10
 
         h = int((self.n + self.p + 1) / 2)
         dataStart = self.LineInVector(X)
 
+        # Реализация первого пункта задания с созданием 500 di расстояний
         for i in range(cStepNumber):
             newData = self.GameOfValues(dataStart, h)
             for step in range(2):
-                container, alarm = self.Cstep(newData, sMatrix, h)
+                container, alarm = self.Cstep(newData, np.linalg.det(sMatrix), h)
                 if alarm != 0:
                     di = container["di"]
                     sMatrix = container["S"]
-                    self.CreateNewListCstep(data=newData, di=di, h=h)
+                    newData = self.CreateNewListCstep(data=newData, di=di, h=h)
                 else:
                     break
-            diSaver500.append([di, sMatrix])
-        a = 0
-        # if (mode == "TestTask"):
-        #     xInterm = xObject.MatrixInVector([[], []], X="a")
-        #     data = np.array([xInterm[0], xInterm[1]])
-        #     self.CreateNewList(data)
-        #     S = np.cov(data, bias=True)
-        #
-        #     if np.linalg.det(S) == 0:
-        #         print("det(S) == 0!")
-        #
-        #     mean_X0 = self.T0(xInterm, 0, n)
-        #     mean_X1 = self.T0(xInterm, 1, n)
-        #     for i in range(n):
-        #         B.append([[xInterm[0][i] - mean_X0], [xInterm[1][i] - mean_X1]])
-        #
-        #     for i in range(n):
-        #         a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
-        #         self.di.append([i, np.dot(a, np.array(B[i]))[0][0]])
-        #     self.di.sort(key=KeyFuncion)
-        # else:
-        #     while 1:
-        #         h = int((n + p + 1) / 2)
-        #         xInterm = xObject.MatrixInVector([[], []], X="a")
-        #         data = np.array([xInterm[0], xInterm[1]])
-        #         S = np.cov(data, bias=True)
-        #
-        #         if math.isclose(np.linalg.det(S), 0):
-        #             print("det(S) == 0!")
-        #             break
-        #
-        #         mean_X0 = self.T0(xInterm, 0, h)
-        #         mean_X1 = self.T0(xInterm, 1, h)
-        #         for i in range(h):
-        #             B.append([[xInterm[0][i] - mean_X0], [xInterm[1][i] - mean_X1]])
-        #
-        #         for i in range(h):
-        #             a = np.dot(np.array(B[i]).transpose(), pow(S, -1))
-        #             self.di.append(np.dot(a, np.array(B[i]))[0][0])
-        #         xInterm.clear()
-        # B.clear()
-        # xInterm.clear()
+            diSaver500.append([np.linalg.det(sMatrix), di])
+        di.clear()
+
+        # diSaver500 содержит [детерминант S, di - вектор]
+        diSaver500.sort(key=KeyFuncion)
+
+        # Выбираем 10 векторов с наименьшим значением S
+        for step in range(lowestNumber):
+            diSaver10.append(diSaver500[step])
+        diSaver500.clear()
+
+
+        # Реализация третьего пункта
+        for i in range(lowestNumber):
+            alarm = 1
+            newData = self.CreateNewListCstep(data=dataStart, di=diSaver10[i][1], h=h)
+            sMatrix = np.zeros((2, 2))
+            while alarm != 0:
+                # Тут остановился
+                container, alarm = self.Cstep(newData, np.linalg.det(sMatrix), h)
+                if alarm != 0:
+                    di = container["di"]
+                    sMatrix = container["S"]
+                    newData = self.CreateNewListCstep(data=dataStart, di=di, h=h)
+                else:
+                    break
+            diEndVector.append([np.linalg.det(sMatrix), di])
+
+
+        x = self.ReturnVector(dataStart, diEndVector[0][1], h)
+        y = np.array(self.ReturnY(diEndVector[0][1], h))
+        return x, y
 
