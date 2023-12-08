@@ -1,4 +1,5 @@
 import random
+from functools import reduce
 
 import numpy as np
 import math
@@ -63,32 +64,39 @@ class MCD:
             index = di[i][1]
             newList.append(self.Y[index])
         return newList
-    def __GameOfValues(self, h):
+    def __GameOfValues(self, data, h):
         # Рандомно вытаскиваю из исходной матрицы Х значения
-        newList = []
+        newList = [[], []]
+        newKeys = []
         vector = [i for i in range(self.n)]
 
         for i in range(h):
             item = random.choice(vector)
-            newList.append(item)
+
+            newKeys.append(item)
+            newList[0].append(data[0][item])
+            newList[1].append(data[1][item])
+
             vector.remove(item)
-        return newList
+        return newList, newKeys
     def __CreateNewListCstep(self, data, di, h):
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
+        newKeys = []
         for i in range(h):
             index = di[i][1]
+            newKeys.append(index)
             newList[0].append(data[0][index])
             newList[1].append(data[1][index])
-        return newList
-    def __T0(self, xMassive, h):
+        return newList, newKeys
+    def __T0(self, xMassive,h):
         # Вычисляю мат. ожидание
         mean = 0.
         for value in xMassive:
             mean += value
         return mean / h
 
-    def __Cstep(self, data, sComparision, h):
+    def __Cstep(self, data, keys, sComparision, h):
         # data - матрица из двух векторов: х1 и х2
         B, di = [], []
         flag = True
@@ -107,8 +115,7 @@ class MCD:
                 B.append([[data[0][i] - mean_X0], [data[1][i] - mean_X1]])
 
             for i in range(h):
-                a = np.dot(np.array(B[i]).transpose(), np.linalg.inv(S))
-                di.append([np.dot(a, np.array(B[i]))[0][0], i])
+                di.append([reduce(np.dot, [np.array(B[i]).transpose(), np.linalg.inv(S), np.array(B[i])])[0][0], keys[i]])
             di.sort(key=KeyFuncion)
             flag = False
         return {"di": di, "S": S}, alarm
@@ -116,6 +123,7 @@ class MCD:
     def FindRelativeDistances(self, X, n, mode):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
         diSaver10, diSaver500, diEndVector, di = [], [], [], []
+        newKeys, newList = [], []
         sMatrix = np.zeros((2, 2))
         cStepNumber, lowestNumber = 500, 10
 
@@ -124,17 +132,22 @@ class MCD:
 
         # Реализация первого пункта задания с созданием 500 di расстояний
         for i in range(cStepNumber):
-            newData = self.__GameOfValues(h)
+            newList, newKeys = self.__GameOfValues(dataStart, h)
             for step in range(2):
-                container, alarm = self.__Cstep(newData, np.linalg.det(sMatrix), h)
+                container, alarm = self.__Cstep(newList, newKeys, np.linalg.det(sMatrix), h)
                 if alarm != 0:
                     di = container["di"]
                     sMatrix = container["S"]
-                    newData = self.__CreateNewListCstep(data=newData, di=di, h=h)
+
+                    # Обратно возвращаю данные из вида di(значение, индекс xi) к виду вектора
+                    newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=di, h=h)
                 else:
                     break
             diSaver500.append([np.linalg.det(sMatrix), di])
         di.clear()
+        newKeys.clear()
+        newList.clear()
+
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
         diSaver500.sort(key=KeyFuncion)
@@ -148,14 +161,14 @@ class MCD:
         # Реализация третьего пункта
         for i in range(lowestNumber):
             alarm = 1
-            newData = self.__CreateNewListCstep(data=dataStart, di=diSaver10[i][1], h=h)
+            newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=diSaver10[i][1], h=h)
             sMatrix = np.zeros((2, 2))
             while alarm != 0:
-                container, alarm = self.__Cstep(newData, np.linalg.det(sMatrix), h)
+                container, alarm = self.__Cstep(newList, newKeys, np.linalg.det(sMatrix), h)
                 if alarm != 0:
                     di = container["di"]
                     sMatrix = container["S"]
-                    newData = self.__CreateNewListCstep(data=dataStart, di=di, h=h)
+                    newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=di, h=h)
                 else:
                     break
             diEndVector.append([np.linalg.det(sMatrix), di])
