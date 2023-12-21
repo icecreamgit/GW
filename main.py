@@ -2,6 +2,7 @@ import numpy as np
 import random
 import MCD
 import LMS
+import M_Estimators as MEst
 
 def filingMatrixX(x, xall, tetta):
     nTetta = len(tetta)
@@ -51,22 +52,23 @@ def TestSelectiveVaribles(X, Y, n, testFactor):
 def main():
     n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 3
     h = int((n + p + 1) / 2)
-    Outlier = 0.05
-    LMSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
+    Outlier = 0.2
+    LSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
+    MObject = MEst.M_Estimators()
 
-    yTrue, xAll = LMSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
+    yTrue, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
     X = np.zeros((n, len(tetta)))
-    X = filingMatrixX(X, LMSObject.lineToColum(xAll, n, tetta), tetta)
+    X = filingMatrixX(X, LSObject.lineToColum(xAll, n, tetta), tetta)
+    tettaLS = LSObject.LSMatrix(X, yTrue.reshape(n, 1))
 
-    # xTest, yTest = TestSelectiveVaribles(X=X, Y=yTrue, n=n, testFactor=0.2)
-    # tettaTest = LMSObject.LMSMatrix(xTest, yTest.reshape(len(yTest), 1))
-    tettaLMS = LMSObject.LMSMatrix(X, yTrue.reshape(n, 1))
+    tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, yTrue, n)
+    tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, yTrue, n)
 
     mcdMethod = MCD.MCD(xAll, yTrue, n, p)
     xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, mode="TestTask")
-    xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LMSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
+    xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
     # xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
-    tettaMCD = LMSObject.LMSMatrix(xMatrixMCD, yVectorMCD.reshape(h, 1))
+    tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD.reshape(h, 1))
 
 
 

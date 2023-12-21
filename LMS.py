@@ -14,19 +14,14 @@ class LMS:
 
     def ylinealModel(self, n, tetta, outlier):
         # Search y without observation error
-        x1 = (np.random.uniform(0., 10., n))
-        x2 = (np.random.uniform(0., 10., n))
+        x1 = (np.random.uniform(0., 1., n))
+        x2 = (np.random.uniform(0., 1., n))
 
         y = LMS.calculateYwithoutError(self, tetta, x1, x2, n)
         xall = []
 
         # Search observation error
         e = np.random.binomial(n=1., p=(1 - outlier), size=n)
-
-        counter = 0
-        for i in e:
-            if i == 0:
-                counter += 1
 
         # Search y_res:
         varMainObservations = 0.01
@@ -55,5 +50,5 @@ class LMS:
                 counterDel += 1
         return xnew
 
-    def LMSMatrix(self, x, y):
+    def LSMatrix(self, x, y):
         return np.dot((np.dot(np.linalg.inv(np.dot(x.transpose(), x)), x.transpose())), y)
