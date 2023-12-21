@@ -50,25 +50,25 @@ def TestSelectiveVaribles(X, Y, n, testFactor):
     return xNewArray, np.array(yNew)
 
 def main():
-    n, tetta, tettaNew, p = 20, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 3
-    h = int((n + p + 1) / 2)
-    Outlier = 0.30
+    n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 3
+    h = int(0.75 * n)
+    Outlier = 0.2
     LSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
     MObject = MEst.M_Estimators()
 
-    yTrue, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
+    Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
     X = np.zeros((n, len(tetta)))
     X = filingMatrixX(X, LSObject.lineToColum(xAll, n, tetta), tetta)
-    tettaLS = LSObject.LSMatrix(X, yTrue.reshape(n, 1))
+    tettaLS = LSObject.LSMatrix(X, Y)
 
-    tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, yTrue, n)
-    tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, yTrue, n)
+    tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
+    tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
 
-    mcdMethod = MCD.MCD(xAll, yTrue, n, p)
-    xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, mode="TestTask")
+    mcdMethod = MCD.MCD(xAll, Y, n, p)
+    xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h , mode="TestTask")
     xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
     # xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
-    tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD.reshape(h, 1))
+    tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
 
 
 

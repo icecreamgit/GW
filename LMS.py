@@ -26,7 +26,7 @@ class LMS:
         # Search y_res:
         varMainObservations = 0.01
         varEmissions = 5.
-        y_res = np.zeros((n,))
+        y_res = np.zeros((n, 1))
 
         for i in range(n):
             if e[i] == 1:
