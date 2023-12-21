@@ -50,9 +50,9 @@ def TestSelectiveVaribles(X, Y, n, testFactor):
     return xNewArray, np.array(yNew)
 
 def main():
-    n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 3
+    n, tetta, tettaNew, p = 20, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 3
     h = int((n + p + 1) / 2)
-    Outlier = 0.2
+    Outlier = 0.30
     LSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
     MObject = MEst.M_Estimators()
 
