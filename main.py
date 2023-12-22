@@ -65,14 +65,13 @@ def main():
     tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
 
     mcdMethod = MCD.MCD(xAll, Y, n, p)
-    xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h , mode="TestTask")
+    xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
     xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
     # xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
     tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
 
-
-
-
+    print(f"tettaLS:\t{tettaLS}\n"
+          f"tettaMCD:\t{tettaMCD}")
     print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
     print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
     Outlier += 0.05

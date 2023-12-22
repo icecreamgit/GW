@@ -68,10 +68,11 @@ class MCD:
         # Рандомно вытаскиваю из исходной матрицы Х значения
         newList = [[], []]
         newKeys = []
+        vector = []
         vector = [i for i in range(self.n)]
 
         for i in range(h):
-            item = random.choice(vector)
+            item = np.random.choice(vector)
 
             newKeys.append(item)
             newList[0].append(data[0][item])
@@ -89,6 +90,20 @@ class MCD:
             newList[0].append(data[0][index])
             newList[1].append(data[1][index])
         return newList, newKeys
+    def __Di(self, data, keys, h):
+        B, di = [], []
+        S = np.cov(data)
+        mean_X0 = np.mean(data[0])
+        mean_X1 = np.mean(data[1])
+        for i in range(h):
+            B.append([[data[0][i] - mean_X0], [data[1][i] - mean_X1]])
+
+        B = np.array(B)
+        for i in range(h):
+            C0 = reduce(np.dot, [B[i].transpose(), np.linalg.inv(S), B[i]])[0][0]
+            di.append([np.sqrt(C0), keys[i]])
+        di.sort(key=KeyFuncion)
+        return di
 
     def __Cstep(self, data, keys, sComparision, h):
         # data - матрица из двух векторов: х1 и х2
@@ -98,7 +113,9 @@ class MCD:
         S = np.zeros((2, 2))
         while flag == True:
             S = np.cov(data)
-            if math.isclose(np.linalg.det(S), np.linalg.det(sComparision)):
+            detS2 = np.linalg.det(S)
+            detS1 = np.linalg.det(sComparision)
+            if math.isclose(detS2, detS1) or detS2 < detS1:
                 alarm = 0
                 flag = False
                 continue
@@ -116,11 +133,11 @@ class MCD:
             flag = False
         return {"di": di, "S": S}, alarm
 
-    def FindRelativeDistances(self, X, n, h,  mode):
+    def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
         diSaver10, diSaver500, diEndVector, di = [], [], [], []
         newKeys, newList = [], []
-        sMatrix = np.zeros((2, 2))
+
         cStepNumber, lowestNumber = 500, 10
 
         dataStart = self.__LineInVector(X)
@@ -128,6 +145,7 @@ class MCD:
         # Реализация первого пункта задания с созданием 500 di расстояний
         for i in range(cStepNumber):
             newList, newKeys = self.__GameOfValues(dataStart, h)
+            sMatrix = np.zeros((2, 2))
             for step in range(2):
                 container, alarm = self.__Cstep(newList, newKeys, sMatrix, h)
                 if alarm != 0:
@@ -138,7 +156,7 @@ class MCD:
                     newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=di, h=h)
                 else:
                     break
-            diSaver500.append([np.linalg.det(sMatrix), di])
+            diSaver500.append([np.linalg.det(sMatrix), di.copy()])
         di.clear()
         newKeys.clear()
         newList.clear()
@@ -149,7 +167,7 @@ class MCD:
 
         # Выбираем 10 векторов с наименьшим значением S
         for step in range(lowestNumber):
-            diSaver10.append(diSaver500[step])
+            diSaver10.append(diSaver500[step].copy())
         diSaver500.clear()
 
 
@@ -166,7 +184,7 @@ class MCD:
                     newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=di, h=h)
                 else:
                     break
-            diEndVector.append([np.linalg.det(sMatrix), di])
+            diEndVector.append([np.linalg.det(sMatrix), di.copy()])
         diSaver10.clear()
         diEndVector.sort(key=KeyFuncion)
 
