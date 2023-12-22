@@ -92,7 +92,7 @@ class MCD:
         return newList, newKeys
     def __Di(self, data, keys, h):
         B, di = [], []
-        S = np.cov(data)
+        S = np.cov(data, bias=True)
         mean_X0 = np.mean(data[0])
         mean_X1 = np.mean(data[1])
         for i in range(h):
@@ -102,62 +102,48 @@ class MCD:
         for i in range(h):
             C0 = reduce(np.dot, [B[i].transpose(), np.linalg.inv(S), B[i]])[0][0]
             di.append([np.sqrt(C0), keys[i]])
-        di.sort(key=KeyFuncion)
-        return di
 
-    def __Cstep(self, data, keys, sComparision, h):
+        return di, S
+
+    def __Cstep(self, dataStart, newList, keys, h, numberItter):
         # data - матрица из двух векторов: х1 и х2
-        B, di = [], []
-        flag = True
-        alarm = 1
-        S = np.zeros((2, 2))
-        while flag == True:
-            S = np.cov(data)
-            detS2 = np.linalg.det(S)
-            detS1 = np.linalg.det(sComparision)
+
+        dnew, Snew = [], [[], []]
+        dold, Sold = self.__Di(newList, keys, h)
+        dold.sort(key=KeyFuncion)
+
+        for i in range(numberItter):
+            HnewList, HnewKeys = self.__CreateNewListCstep(dataStart, dold, h)
+            dnew, Snew = self.__Di(HnewList, keys, h)
+            dnew.sort(key=KeyFuncion)
+
+            detS2 = np.linalg.det(Snew)
+            detS1 = np.linalg.det(Sold)
             if math.isclose(detS2, detS1) or detS2 < detS1:
-                alarm = 0
-                flag = False
-                continue
-
-            mean_X0 = np.mean(data[0])
-            mean_X1 = np.mean(data[1])
-            for i in range(h):
-                B.append([[data[0][i] - mean_X0], [data[1][i] - mean_X1]])
-
-            B = np.array(B)
-            for i in range(h):
-                C0 = reduce(np.dot, [B[i].transpose(), np.linalg.inv(S), B[i]])[0][0]
-                di.append([np.sqrt(C0), keys[i]])
-            di.sort(key=KeyFuncion)
-            flag = False
-        return {"di": di, "S": S}, alarm
+                break
+            else:
+                dold = dnew
+                Sold = Snew
+        return {"dnew": dnew, "Snew": Snew}
 
     def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
-        diSaver10, diSaver500, diEndVector, di = [], [], [], []
+        diSaver10, diSaver500, diEndVector, dnew = [], [], [], []
         newKeys, newList = [], []
-
         cStepNumber, lowestNumber = 500, 10
 
         dataStart = self.__LineInVector(X)
-
         # Реализация первого пункта задания с созданием 500 di расстояний
         for i in range(cStepNumber):
             newList, newKeys = self.__GameOfValues(dataStart, h)
-            sMatrix = np.zeros((2, 2))
-            for step in range(2):
-                container, alarm = self.__Cstep(newList, newKeys, sMatrix, h)
-                if alarm != 0:
-                    di = container["di"]
-                    sMatrix = container["S"]
 
-                    # Обратно возвращаю данные из вида di(значение, индекс xi) к виду вектора
-                    newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=di, h=h)
-                else:
-                    break
-            diSaver500.append([np.linalg.det(sMatrix), di.copy()])
-        di.clear()
+            container = self.__Cstep(dataStart, newList, newKeys, h, numberItter=2)
+            dnew = container["dnew"]
+            Snew = container["Snew"]
+
+            diSaver500.append([np.linalg.det(Snew), dnew.copy()])
+
+        dnew.clear()
         newKeys.clear()
         newList.clear()
 
@@ -173,18 +159,13 @@ class MCD:
 
         # Реализация третьего пункта
         for i in range(lowestNumber):
-            alarm = 1
             newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=diSaver10[i][1], h=h)
-            sMatrix = np.zeros((2, 2))
-            while alarm != 0:
-                container, alarm = self.__Cstep(newList, newKeys, sMatrix, h)
-                if alarm != 0:
-                    di = container["di"]
-                    sMatrix = container["S"]
-                    newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=di, h=h)
-                else:
-                    break
-            diEndVector.append([np.linalg.det(sMatrix), di.copy()])
+
+            container = self.__Cstep(dataStart, newList, newKeys, h, numberItter=1000000)
+            dnew = container["dnew"]
+            Snew = container["Snew"]
+
+            diEndVector.append([np.linalg.det(Snew), dnew.copy()])
         diSaver10.clear()
         diEndVector.sort(key=KeyFuncion)
 
