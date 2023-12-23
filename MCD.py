@@ -67,64 +67,87 @@ class MCD:
     def __GameOfValues(self, data, h):
         # Рандомно вытаскиваю из исходной матрицы Х значения
         newList = [[], []]
-        newKeys = []
         vector = []
         vector = [i for i in range(self.n)]
 
         for i in range(h):
             item = np.random.choice(vector)
 
-            newKeys.append(item)
             newList[0].append(data[0][item])
             newList[1].append(data[1][item])
 
             vector.remove(item)
-        return newList, newKeys
+        return newList
     def __CreateNewListCstep(self, data, di, h):
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
-        newKeys = []
         for i in range(h):
             index = di[i][1]
-            newKeys.append(index)
             newList[0].append(data[0][index])
             newList[1].append(data[1][index])
-        return newList, newKeys
-    def __Di(self, data, keys, h):
+        return newList
+    def __Di(self, dataStart, listH, n):
         B, di = [], []
-        S = np.cov(data, bias=True)
-        mean_X0 = np.mean(data[0])
-        mean_X1 = np.mean(data[1])
-        for i in range(h):
-            B.append([[data[0][i] - mean_X0], [data[1][i] - mean_X1]])
+        S = np.cov(listH, bias=True)
+        mean_X0 = np.mean(listH[0])
+        mean_X1 = np.mean(listH[1])
+        for i in range(n):
+            B.append([[dataStart[0][i] - mean_X0], [dataStart[1][i] - mean_X1]])
 
         B = np.array(B)
-        for i in range(h):
+        for i in range(n):
             C0 = reduce(np.dot, [B[i].transpose(), np.linalg.inv(S), B[i]])[0][0]
-            di.append([np.sqrt(C0), keys[i]])
-
+            di.append([np.sqrt(C0), i])
         return di, S
 
-    def __Cstep(self, dataStart, newList, keys, h, numberItter):
+    def __CstepForFirstStep(self, dataStart, n, h, numberItter):
         # data - матрица из двух векторов: х1 и х2
-
+        newList = self.__GameOfValues(dataStart, h)
         dnew, Snew = [], [[], []]
-        dold, Sold = self.__Di(newList, keys, h)
+        dold, Sold = self.__Di(dataStart, newList, n)
         dold.sort(key=KeyFuncion)
 
         for i in range(numberItter):
-            HnewList, HnewKeys = self.__CreateNewListCstep(dataStart, dold, h)
-            dnew, Snew = self.__Di(HnewList, keys, h)
+            HnewList = self.__CreateNewListCstep(dataStart, dold, h)
+            dnew, Snew = self.__Di(dataStart, HnewList, n)
             dnew.sort(key=KeyFuncion)
 
             detS2 = np.linalg.det(Snew)
             detS1 = np.linalg.det(Sold)
-            if math.isclose(detS2, detS1) or detS2 < detS1:
+            if math.isclose(detS2, detS1) or math.isclose(detS2, 0.0):
                 break
             else:
-                dold = dnew
-                Sold = Snew
+                dold = dnew.copy()
+                Sold = Snew.copy()
         return {"dnew": dnew, "Snew": Snew}
+
+    def __CstepForSecondStep(self, dataStart, diVector, n, h, numberItter):
+        # data - матрица из двух векторов: х1 и х2
+        dnew, Snew, Sold = [], [[], []], [[], []]
+        resultVector = []
+
+        for i in range(numberItter):
+            j = 0
+            dold = diVector[i][1]
+            detS1 = diVector[i][0]
+
+            while(1):
+                HnewList = self.__CreateNewListCstep(data=dataStart, di=dold, h=h)
+                dnew, Snew = self.__Di(dataStart, HnewList, n)
+                dnew.sort(key=KeyFuncion)
+
+                detS2 = np.linalg.det(Snew)
+                if j != 0:
+                    detS1 = np.linalg.det(Sold)
+                if math.isclose(detS2, detS1) or math.isclose(detS2, 0.0):
+                    break
+                else:
+                    dold = dnew.copy()
+                    Sold = Snew.copy()
+                    j += 1
+
+            resultVector.append([np.linalg.det(Snew), dnew.copy()])
+        return resultVector
 
     def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
@@ -135,9 +158,8 @@ class MCD:
         dataStart = self.__LineInVector(X)
         # Реализация первого пункта задания с созданием 500 di расстояний
         for i in range(cStepNumber):
-            newList, newKeys = self.__GameOfValues(dataStart, h)
 
-            container = self.__Cstep(dataStart, newList, newKeys, h, numberItter=2)
+            container = self.__CstepForFirstStep(dataStart, n, h, numberItter=2)
             dnew = container["dnew"]
             Snew = container["Snew"]
 
@@ -158,18 +180,11 @@ class MCD:
 
 
         # Реализация третьего пункта
-        for i in range(lowestNumber):
-            newList, newKeys = self.__CreateNewListCstep(data=dataStart, di=diSaver10[i][1], h=h)
 
-            container = self.__Cstep(dataStart, newList, newKeys, h, numberItter=1000000)
-            dnew = container["dnew"]
-            Snew = container["Snew"]
-
-            diEndVector.append([np.linalg.det(Snew), dnew.copy()])
-        diSaver10.clear()
+        diEndVector = self.__CstepForSecondStep(dataStart, diSaver10, n, h, numberItter=lowestNumber)
         diEndVector.sort(key=KeyFuncion)
 
-        X = self.__ReturnVector(dataStart, diEndVector[0][1], h)
-        Y = np.array(self.__ReturnY(diEndVector[0][1], h))
+        X = self.__ReturnVector(dataStart, diEndVector[0][1], n)
+        Y = np.array(self.__ReturnY(diEndVector[0][1], n))
         return X, Y
 
