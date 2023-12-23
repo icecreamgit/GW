@@ -51,18 +51,16 @@ def TestSelectiveVaribles(X, Y, n, testFactor):
 
 def main():
     n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 3
-    h = int(0.75 * n)
+    h = int( (n+p+1) / 2.)
     Outlier = 0.2
     LSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
     MObject = MEst.M_Estimators()
+
 
     Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
     X = np.zeros((n, len(tetta)))
     X = filingMatrixX(X, LSObject.lineToColum(xAll, n, tetta), tetta)
     tettaLS = LSObject.LSMatrix(X, Y)
-
-    tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
-    tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
 
     mcdMethod = MCD.MCD(xAll, Y, n, p)
     xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
@@ -70,11 +68,15 @@ def main():
     # xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
     tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
 
+    tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
+    tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
+
+
+
     print(f"tettaLS:\t{tettaLS}\n"
           f"tettaMCD:\t{tettaMCD}")
-    print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
-    print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
-    Outlier += 0.05
+    # print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
+    # print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
 
 if __name__ == '__main__':
     main()

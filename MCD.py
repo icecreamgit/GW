@@ -67,7 +67,6 @@ class MCD:
     def __GameOfValues(self, data, h):
         # Рандомно вытаскиваю из исходной матрицы Х значения
         newList = [[], []]
-        vector = []
         vector = [i for i in range(self.n)]
 
         for i in range(h):
@@ -88,9 +87,10 @@ class MCD:
         return newList
     def __Di(self, dataStart, listH, n):
         B, di = [], []
-        S = np.cov(listH, bias=True)
+        S = np.cov(listH)
         mean_X0 = np.mean(listH[0])
         mean_X1 = np.mean(listH[1])
+
         for i in range(n):
             B.append([[dataStart[0][i] - mean_X0], [dataStart[1][i] - mean_X1]])
 
@@ -160,8 +160,8 @@ class MCD:
         for i in range(cStepNumber):
 
             container = self.__CstepForFirstStep(dataStart, n, h, numberItter=2)
-            dnew = container["dnew"]
-            Snew = container["Snew"]
+            dnew = container["dnew"].copy()
+            Snew = container["Snew"].copy()
 
             diSaver500.append([np.linalg.det(Snew), dnew.copy()])
 
@@ -184,7 +184,7 @@ class MCD:
         diEndVector = self.__CstepForSecondStep(dataStart, diSaver10, n, h, numberItter=lowestNumber)
         diEndVector.sort(key=KeyFuncion)
 
-        X = self.__ReturnVector(dataStart, diEndVector[0][1], n)
-        Y = np.array(self.__ReturnY(diEndVector[0][1], n))
+        X = self.__ReturnVector(dataStart, diEndVector[0][1], h)
+        Y = np.array(self.__ReturnY(diEndVector[0][1], h))
         return X, Y
 
