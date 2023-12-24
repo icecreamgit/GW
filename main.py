@@ -56,25 +56,26 @@ def main():
     LSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
     MObject = MEst.M_Estimators()
 
+    for i in range(10):
+        Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
+        X = np.zeros((n, len(tetta)))
+        X = filingMatrixX(X, LSObject.lineToColum(xAll, n, tetta), tetta)
+        tettaLS = LSObject.LSMatrix(X, Y)
 
-    Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
-    X = np.zeros((n, len(tetta)))
-    X = filingMatrixX(X, LSObject.lineToColum(xAll, n, tetta), tetta)
-    tettaLS = LSObject.LSMatrix(X, Y)
+        mcdMethod = MCD.MCD(Y, n, p)
+        xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
+        xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
+        tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
 
-    mcdMethod = MCD.MCD(xAll, Y, n, p)
-    xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
-    xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
-    # xMCD, yMCD = mcdMethod.GetNewX(X, p, n, yTrue, xNew=[])
-    tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
-
-    tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
-    tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
-
+        tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
+        tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
 
 
-    print(f"tettaLS:\t{tettaLS}\n"
-          f"tettaMCD:\t{tettaMCD}")
+
+        print(f" i == {i}\ntettaLS:\n{tettaLS}\n"
+              f"tettaMCD:\n{tettaMCD}\n"
+              f"tettaMEstHuber\n{tettaMEstHuber}\n"
+              f"tettaMEstCauchy\n{tettaMEstCauchy}\n")
     # print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
     # print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
 
