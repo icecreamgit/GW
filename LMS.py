@@ -23,22 +23,23 @@ class LMS:
         xall = []
 
         # Search observation error
-        e = np.random.binomial(n=1., p=(1 - outlier), size=n)
+        e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
 
         # Search y_res:
         varMainObservations = 0.01
         varEmissions = 5.
-        y_res = np.zeros((n, 1))
+        y_res = []
 
         for i in range(n):
-            if math.isclose(e[i], 1.):
-                y_res[i] = y[i] + np.random.normal(0, np.sqrt(varMainObservations))
+            if e[i] == 1:
+                y_res.append(y[i] + np.random.normal(0, np.sqrt(varMainObservations)))
             else:
-                y_res[i] = y[i] + np.random.normal(0, np.sqrt(varEmissions))
+                y_res.append(y[i] + np.random.normal(0, np.sqrt(varEmissions)))
         for i in range(n):
             xall.append(x1[i])
         for i in range(n):
             xall.append(x2[i])
+        y_res = np.array(y_res).reshape(n, 1)
         return y_res, xall
 
     def lineToColum(self, x, n, tetta):
