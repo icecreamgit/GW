@@ -17,13 +17,10 @@ class ExtraThings:
 
     def MainCount(self, tettaCount, tettaStart, N, method):
         midTetta = self.__MiddleTetta(tettaCount, N)
-        # print(f"method:\t{method}\n"
-        #       f"{midTetta}\n")
 
         n = len(tettaStart)
         endFalue = self.__CountMark(tettaStart, midTetta, n)
-        # print(f"Показатель:\t{method}\n"
-        #       f"{endFalue}\n")
+
         return endFalue
 
 

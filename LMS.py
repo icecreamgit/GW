@@ -3,11 +3,6 @@ import math
 import numpy as np
 
 class LMS:
-    def __init__(self, n, tetta, outlier):
-        self.n = n
-        self.tetta = tetta
-        self.outlier = outlier
-
     def calculateYwithoutError(self, t, x1, x2, size):
         y_ = np.zeros((size,))
         for i in range(size):
@@ -25,9 +20,17 @@ class LMS:
         # Search observation error
         e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
 
+        # counter = 0
+        # for i in range(len(e)):
+        #     if e[i] == 0:
+        #         counter += 1
+        # print(f"Outlyer:\t{outlier}\n"
+        #       f"counter\t{counter}\n")
+
+
         # Search y_res:
         varMainObservations = 0.01
-        varEmissions = 5.
+        varEmissions = 0.5
         y_res = []
 
         for i in range(n):
@@ -42,16 +45,9 @@ class LMS:
 
         return y_res, xall
 
-    def lineToColum(self, x, n, tetta):
-        # Преобразование входной строки x в матрицу
-        nTetta = len(tetta) - 1
-        xnew = np.zeros((nTetta, n))
-        counterDel = 0
-        for stepi in range(nTetta):
-            for stepj in range(n):
-                xnew[stepi][stepj] = x[counterDel]
-                counterDel += 1
-        return xnew
-
     def LSMatrix(self, x, y):
-        return np.dot((np.dot(np.linalg.inv(np.dot(x.transpose(), x)), x.transpose())), y)
+        C0 = np.dot(x.transpose(), x)
+        C1 = np.linalg.inv(C0)
+        C2 = np.dot(C1, x.transpose())
+        C3 = np.dot(C2, y)
+        return C3

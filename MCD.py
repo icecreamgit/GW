@@ -84,14 +84,14 @@ class MCD:
             newList[0].append(data[0][index])
             newList[1].append(data[1][index])
         return newList
-    def __Di(self, dataStart, listH, n):
+    def __Di(self, X, listH, n):
         B, di = [], []
         S = np.cov(listH)
         mean_X0 = np.mean(listH[0])
         mean_X1 = np.mean(listH[1])
 
         for i in range(n):
-            B.append([[dataStart[0][i] - mean_X0], [dataStart[1][i] - mean_X1]])
+            B.append([[X[0][i] - mean_X0], [X[1][i] - mean_X1]])
 
         B = np.array(B)
         for i in range(n):
@@ -99,21 +99,21 @@ class MCD:
             di.append([np.sqrt(C0), i])
         return di, S
 
-    def __CstepForFirstStep(self, dataStart, n, h, numberItter):
+    def __CstepForFirstStep(self, X, n, h, numberItter):
         # data - матрица из двух векторов: х1 и х2
         dnew, Snew = [], [[], []]
 
-        JList = self.__GameOfValues(dataStart, h)
-        d0, S0 = self.__Di(dataStart, JList, n)
+        JList = self.__GameOfValues(X, h)
+        d0, S0 = self.__Di(X, JList, n)
         d0.sort(key=KeyFuncion)
-        H1List = self.__CreateNewListCstep(dataStart, d0, h)
+        H1List = self.__CreateNewListCstep(X, d0, h)
 
         for i in range(numberItter):
-            dold, Sold = self.__Di(dataStart, H1List, n)
+            dold, Sold = self.__Di(X, H1List, n)
             dold.sort(key=KeyFuncion)
 
-            HnewList = self.__CreateNewListCstep(dataStart, dold, h)
-            dnew, Snew = self.__Di(dataStart, HnewList, n)
+            HnewList = self.__CreateNewListCstep(X, dold, h)
+            dnew, Snew = self.__Di(X, HnewList, n)
             dnew.sort(key=KeyFuncion)
 
             detS2 = np.linalg.det(Snew)
@@ -126,21 +126,21 @@ class MCD:
 
         return {"dnew": dnew, "Snew": Snew}
 
-    def __CstepForSecondStep(self, dataStart, diVector, n, h, numberItter):
+    def __CstepForSecondStep(self, X, diVector, n, h, numberItter):
         # data - матрица из двух векторов: х1 и х2
         resultVector = []
 
         for i in range(numberItter):
 
             dold = diVector[i][1]
-            HoldList = self.__CreateNewListCstep(data=dataStart, di=dold, h=h)
+            HoldList = self.__CreateNewListCstep(data=X, di=dold, h=h)
 
             while(1):
-                dold, Sold = self.__Di(dataStart, HoldList, n)
+                dold, Sold = self.__Di(X, HoldList, n)
                 dold.sort(key=KeyFuncion)
 
-                HnewList = self.__CreateNewListCstep(data=dataStart, di=dold, h=h)
-                dnew, Snew = self.__Di(dataStart, HnewList, n)
+                HnewList = self.__CreateNewListCstep(data=X, di=dold, h=h)
+                dnew, Snew = self.__Di(X, HnewList, n)
                 dnew.sort(key=KeyFuncion)
 
                 detS2 = np.linalg.det(Snew)
@@ -157,7 +157,7 @@ class MCD:
 
     def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
-        diSaver10, diSaver500, diEndVector, dnew = [], [], [], []
+        diSaver10, diSaver500, diEndVector, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 
         # Реализация первого пункта задания с созданием 500 di расстояний
@@ -170,7 +170,7 @@ class MCD:
             diSaver500.append([np.linalg.det(Snew), dnew.copy()])
 
         dnew.clear()
-
+        Snew.clear()
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
         diSaver500.sort(key=KeyFuncion)
