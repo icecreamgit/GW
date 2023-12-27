@@ -160,11 +160,10 @@ class MCD:
         diSaver10, diSaver500, diEndVector, dnew = [], [], [], []
         cStepNumber, lowestNumber = 500, 10
 
-        dataStart = self.__LineInVector(X)
         # Реализация первого пункта задания с созданием 500 di расстояний
         for i in range(cStepNumber):
 
-            container = self.__CstepForFirstStep(dataStart, n, h, numberItter=2)
+            container = self.__CstepForFirstStep(X, n, h, numberItter=2)
             dnew = container["dnew"].copy()
             Snew = container["Snew"].copy()
 
@@ -192,10 +191,10 @@ class MCD:
 
         # Реализация третьего пункта
 
-        diEndVector = self.__CstepForSecondStep(dataStart, diSaver10, n, h, numberItter=lowestNumber)
+        diEndVector = self.__CstepForSecondStep(X, diSaver10, n, h, numberItter=lowestNumber)
         diEndVector.sort(key=KeyFuncion)
 
-        X = self.__ReturnVector(dataStart, diEndVector[0][1], h)
+        X = self.__CreateNewListCstep(X, diEndVector[0][1], h)
         Y = np.array(self.__ReturnY(diEndVector[0][1], h))
         return X, Y
 

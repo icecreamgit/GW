@@ -71,11 +71,11 @@ def main():
             tettaLS = LSObject.LSMatrix(X, Y)
             LSsaver.append(tettaLS.copy())
 
-            # mcdMethod = MCD.MCD(Y, n, p)
-            # xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
-            # xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
-            # tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
-            # MCDsaver.append(tettaMCD.copy())
+            mcdMethod = MCD.MCD(Y, n, p)
+            xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
+            xMatrixMCD = filingMatrixX(xall=xVectorMCD, n=h, tetta=tetta)
+            tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
+            MCDsaver.append(tettaMCD.copy())
 
 
             tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
