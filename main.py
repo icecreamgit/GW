@@ -6,15 +6,12 @@ import M_Estimators as MEst
 import ExtraThings as ex
 
 import matplotlib.pyplot as plt
-def filingMatrixX(x, xall, tetta):
-    nTetta = len(tetta)
-    n = len(x)
-    for stepi in range(n):
-        x[stepi][0] = 1.
-    for stepi in range(n):
-        for stepj in range(1, nTetta):
-            x[stepi][stepj] = xall[stepj - 1][stepi]
-    return x
+def filingMatrixX(xall, n, tetta):
+    Xsaver = []
+    for i in range(n):
+        Xsaver.append([1.0, xall[0][i], xall[1][i]])
+    Xsaver = np.array(Xsaver)
+    return Xsaver
 
 def relativeError(tettaTrue, tettanew):
     n, counter = len(tettaTrue), 0
@@ -70,8 +67,7 @@ def main():
         for i in range(Ncycle):
 
             Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
-            X = np.zeros((n, len(tetta)))
-            X = filingMatrixX(X, LSObject.lineToColum(xAll, n, tetta), tetta)
+            X = filingMatrixX(xAll, n, tetta)
             tettaLS = LSObject.LSMatrix(X, Y)
             LSsaver.append(tettaLS.copy())
 

@@ -20,7 +20,7 @@ class LMS:
         x2 = (np.random.uniform(0., 10., n))
 
         y = self.calculateYwithoutError(tetta, x1, x2, n)
-        xall = []
+        xall = [[], []]
 
         # Search observation error
         e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
@@ -36,10 +36,10 @@ class LMS:
             else:
                 y_res.append(y[i] + np.random.normal(0, np.sqrt(varEmissions)))
         for i in range(n):
-            xall.append(x1[i])
-        for i in range(n):
-            xall.append(x2[i])
+            xall[0].append(x1[i])
+            xall[1].append(x2[i])
         y_res = np.array(y_res).reshape(n, 1)
+
         return y_res, xall
 
     def lineToColum(self, x, n, tetta):
