@@ -3,7 +3,9 @@ import random
 import MCD
 import LMS
 import M_Estimators as MEst
+import ExtraThings as ex
 
+import matplotlib.pyplot as plt
 def filingMatrixX(x, xall, tetta):
     nTetta = len(tetta)
     n = len(x)
@@ -50,34 +52,67 @@ def TestSelectiveVaribles(X, Y, n, testFactor):
     return xNewArray, np.array(yNew)
 
 def main():
-    n, tetta, tettaNew, p = 200, np.array([1., 1.5, 2.]), np.array([0., 0., 0.]), 3
+    n, tetta, p = 200, np.array([1., 1.5, 2.]), 3
     h = int( (n+p+1) / 2.)
-    Outlier = 0.2
+    outSaver = []
+    Outlier = 0.
     LSObject = LMS.LMS(n=n, tetta=tetta, outlier=Outlier)
     MObject = MEst.M_Estimators()
+    LSsaver = []
+    MCDsaver = []
+    Hubersaver = []
+    Cauchysaver = []
 
-    for i in range(10):
-        Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
-        X = np.zeros((n, len(tetta)))
-        X = filingMatrixX(X, LSObject.lineToColum(xAll, n, tetta), tetta)
-        tettaLS = LSObject.LSMatrix(X, Y)
+    Ncycle = 100
+    iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
-        mcdMethod = MCD.MCD(Y, n, p)
-        xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
-        xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
-        tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
+    while Outlier < 0.25:
+        for i in range(Ncycle):
 
-        tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
-        tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
+            Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
+            X = np.zeros((n, len(tetta)))
+            X = filingMatrixX(X, LSObject.lineToColum(xAll, n, tetta), tetta)
+            tettaLS = LSObject.LSMatrix(X, Y)
+            LSsaver.append(tettaLS.copy())
+
+            # mcdMethod = MCD.MCD(Y, n, p)
+            # xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
+            # xMatrixMCD = filingMatrixX(x=np.zeros((h, len(tetta))), xall=LSObject.lineToColum(xVectorMCD, h, tetta), tetta=tetta)
+            # tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
+            # MCDsaver.append(tettaMCD.copy())
 
 
+            tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
+            Hubersaver.append(tettaMEstHuber.copy())
 
-        print(f" i == {i}\ntettaLS:\n{tettaLS}\n"
-              f"tettaMCD:\n{tettaMCD}\n"
-              f"tettaMEstHuber\n{tettaMEstHuber}\n"
-              f"tettaMEstCauchy\n{tettaMEstCauchy}\n")
-    # print("\nOutlier = ", Outlier*100,"%", "\ntetta:\n", tettaNew)
-    # print("\nОтносительная ошибка:\n", relativeError(tettaTrue=tetta, tettanew=tettaNew))
+            tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
+            Cauchysaver.append(tettaMEstCauchy.copy())
+
+            print(f" i == {i}\ntettaLS:\n{tettaLS}\n"
+                  # f"tettaMCD:\n{tettaMCD}\n"
+                  f"tettaMEstHuber\n{tettaMEstHuber}\n"
+                  f"tettaMEstCauchy\n{tettaMEstCauchy}\n")
+
+        extraObj = ex.ExtraThings()
+        iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle, "LS")[0])
+        # iMCD.append(extraObj.MainCount(MCDsaver, tetta, Ncycle, "MCD")[0])
+        iHuber.append(extraObj.MainCount(Hubersaver, tetta, Ncycle, "Huber")[0])
+        iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, Ncycle, "Cauchy")[0])
+
+        LSsaver = []
+        MCDsaver = []
+        Hubersaver = []
+        Cauchysaver = []
+        outSaver.append(Outlier)
+        Outlier += 0.05
+
+    plt.plot()
+    plt.xlabel("Выбросы")  # ось абсцисс
+    plt.ylabel("Показатель точности")  # ось ординат
+    plt.grid()  # включение отображение сетки
+    plt.plot(outSaver, iLS, outSaver, iHuber, outSaver, iCauchy)  # построение графика
+    plt.legend(("LS", "Huber", "Cauchy"))
+    plt.show()
 
 if __name__ == '__main__':
     main()

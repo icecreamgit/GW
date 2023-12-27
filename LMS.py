@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 
 class LMS:
@@ -17,7 +19,7 @@ class LMS:
         x1 = (np.random.uniform(0., 10., n))
         x2 = (np.random.uniform(0., 10., n))
 
-        y = LMS.calculateYwithoutError(self, tetta, x1, x2, n)
+        y = self.calculateYwithoutError(tetta, x1, x2, n)
         xall = []
 
         # Search observation error
@@ -29,7 +31,7 @@ class LMS:
         y_res = np.zeros((n, 1))
 
         for i in range(n):
-            if e[i] == 1:
+            if math.isclose(e[i], 1.):
                 y_res[i] = y[i] + np.random.normal(0, np.sqrt(varMainObservations))
             else:
                 y_res[i] = y[i] + np.random.normal(0, np.sqrt(varEmissions))

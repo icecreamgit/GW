@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from functools import reduce
 
@@ -35,7 +37,7 @@ class M_Estimators:
         vector = []
         wi = np.zeros((n, n))
         for i in range(n):
-            if ui[i] <= k:
+            if ui[i] < k or math.isclose(ui[i], k):
                 vector.append(1)
             else:
                 vector.append(k * np.sign(ui[i]) / ui[i])
@@ -48,33 +50,33 @@ class M_Estimators:
         return np.dot(np.linalg.inv(reduce(np.dot, [X.transpose(), W, X])),    reduce(np.dot, [X.transpose(), W, Y]))
 
     def __Verification(self, tettaOld, tettaNew, eps):
-        result = True
+        result = False
         vector = []
 
         for i in range(len(tettaOld)):
             vector.append( abs( (tettaOld[i] - tettaNew[i]) / tettaOld[i] ) )
-        if max(vector) > eps:
-            result = False
+        if max(vector) < eps or math.isclose(max(vector), eps):
+            result = True
         return result
 
     def MainEstimators(self, tetta, typeEst, X, Y, n):
         W = np.zeros((n, n))
-        eps = 0.001
+        eps = 0.1
         fiStar = Y
         tettaOld = tetta
-
-        while True:
+        numberOfIter = 10000
+        for i in range(numberOfIter):
             fi = self.__LineFunction(tettaOld, X, n)
             ei = self.__Ei(fi, Y, n)
-            l = 1. / 0.67449 * (np.median(ei))
+            l = 1. / 0.67449 * (np.median(ei.reshape(n, )))
             ui = self.__Ui(ei, l, n)
             if typeEst == "Huber":
                 W = self.__WiHuber(ui, n)
             elif typeEst == "Cauchy":
                 W = self.__WiCauchy(ui, n)
             tettaNew = self.__TettaCount(X, W, Y.reshape(n, 1))
-
-            if self.__Verification(tettaOld, tettaNew, eps) == False:
+            a = self.__Verification(tettaOld, tettaNew, eps)
+            if a == True:
                 break
             fiStar = fi
             tettaOld = tettaNew
