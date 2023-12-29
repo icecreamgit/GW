@@ -2,25 +2,29 @@ import numpy as np
 
 class ExtraThings:
 
-    def __MiddleTetta(self, tetta, N):
-        result = np.zeros((len(tetta[0]), 1))
+    def __MiddleTetta(self, Ksi):
+        result = 0.
+        N = len(Ksi)
         for i in range(N):
-            result += tetta[i]
+            result += Ksi[i]
         result /= N
         return result
 
-    def __CountMark(self, tettaStart, midTetta, n):
-        result = 0.
-        for i in range(n):
-            result += pow(tettaStart[i] - midTetta[i], 2) / pow(tettaStart[i], 2)
+    def __CountMark(self, tettaTrue, tettaNew, n):
+        result = []
+
+        for element in tettaNew:
+            saver = 0.
+            for i in range(n):
+                saver += (pow(tettaTrue[i] - element[i], 2) / pow(tettaTrue[i], 2))
+            result.append(saver)
         return result
 
-    def MainCount(self, tettaCount, tettaStart, N, method):
-        midTetta = self.__MiddleTetta(tettaCount, N)
+    def MainCount(self, tettaCount, tettaTrue, N):
+        n = len(tettaTrue)
+        Ksi = self.__CountMark(tettaTrue, tettaCount, n)
+        KsiEnd = self.__MiddleTetta(Ksi)
 
-        n = len(tettaStart)
-        endFalue = self.__CountMark(tettaStart, midTetta, n)
-
-        return endFalue
+        return KsiEnd
 
 

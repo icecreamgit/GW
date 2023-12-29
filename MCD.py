@@ -169,8 +169,8 @@ class MCD:
 
             diSaver500.append([np.linalg.det(Snew), dnew.copy()])
 
-        dnew.clear()
-        Snew.clear()
+        del dnew
+        del Snew
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
         diSaver500.sort(key=KeyFuncion)

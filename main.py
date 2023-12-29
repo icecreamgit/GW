@@ -14,7 +14,7 @@ def filingMatrixX(xall, n, tetta):
     return Xsaver
 
 def main():
-    n, tetta, p = 100, np.array([1., 1.5, 2.]), 3
+    n, tetta, p = 200, np.array([1., 1.5, 2.]), 3
     h = int( (n+p+1) / 2.)
     outSaver = []
     Outlier = 0.
@@ -25,7 +25,7 @@ def main():
     Ncycle = 500
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
-    while Outlier < 0.25:
+    while n < 600:
         LSsaver = []
         MCDsaver = []
         Hubersaver = []
@@ -59,21 +59,25 @@ def main():
                   # f"tettaMEstCauchy\n{tettaMEstCauchy}\n")
 
         extraObj = ex.ExtraThings()
-        iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle, "LS")[0])
-        # iMCD.append(extraObj.MainCount(MCDsaver, tetta, Ncycle, "MCD")[0])
-        iHuber.append(extraObj.MainCount(Hubersaver, tetta, Ncycle, "Huber")[0])
-        iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, Ncycle, "Cauchy")[0])
+        iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle)[0])
+        # iMCD.append(extraObj.MainCount(MCDsaver, tetta, Ncycle)[0])
+        iHuber.append(extraObj.MainCount(Hubersaver, tetta, Ncycle)[0])
+        iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, Ncycle)[0])
 
-        print(f" i == {Outlier}\n")
-        outSaver.append(Outlier)
-        Outlier += 0.02
+        print(f" i == {n}\n")
+        outSaver.append(n)
+        n += 50
 
     plt.plot()
     plt.xlabel("Выбросы")  # ось абсцисс
     plt.ylabel("Показатель точности")  # ось ординат
     plt.grid()  # включение отображение сетки
-    plt.plot(outSaver, iLS, outSaver, iHuber, outSaver, iCauchy)  # построение графика
-    plt.legend(("LS", "Huber", "Cauchy"))
+    plt.plot(outSaver, iLS,
+             # outSaver, iMCD,
+             outSaver, iHuber, outSaver, iCauchy)  # построение графика
+    plt.legend(("LS",
+                # "MCD"
+                      "Huber", "Cauchy"))
     plt.show()
 
 if __name__ == '__main__':
