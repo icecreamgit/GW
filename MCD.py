@@ -47,16 +47,6 @@ class MCD:
                 line.append(vector[counter])
                 counter += 1
         return newList
-
-    def __ReturnVector(self, data, di, h):
-        newList = []
-        for i in range(h):
-            index = di[i][1]
-            newList.append(data[0][index])
-        for i in range(h):
-            index = di[i][1]
-            newList.append(data[1][index])
-        return newList
     def __ReturnY(self, di, h):
         newList = []
         for i in range(h):
@@ -155,6 +145,72 @@ class MCD:
             resultVector.append([np.linalg.det(Snew), dnew.copy()])
         return resultVector
 
+#####################################################___NEW
+    def __H1Generate(self, h, n):
+        H = []
+        vector = [i for i in range(n)]
+        for i in range(h):
+
+            item = np.random.choice(vector)
+            H.append(item)
+            vector.remove(item)
+        return H
+
+    def __TS_Count(self, X, H, h):
+        HValuesList = [[], []]
+        T1mean, T2mean, T = 0.0, 0.0, []
+        S = [[], []]
+
+        # Создание Х1 и Х2, принадлежащие H вектору
+        for i in range(h):
+            trueIndex = H[i]
+            HValuesList[0].append(X[0][trueIndex])
+            HValuesList[1].append(X[1][trueIndex])
+
+        T1mean = np.mean(HValuesList[0])
+        T2mean = np.mean(HValuesList[1])
+        S = np.cov(HValuesList)
+
+        T.append([T1mean, T2mean])
+        T = np.array(T)
+        return T, S
+
+    def __Di2(self, X, T, S, n):
+        B, di = [], []
+
+        for i in range(n):
+            B.append([[X[0][i] - T[0]], [X[1][i] - T[1]]])
+
+        B = np.array(B)
+        for i in range(n):
+            C0 = reduce(np.dot, [B[i].transpose(), np.linalg.inv(S), B[i]])[0][0]
+            di.append([np.sqrt(C0), i])
+        return di
+    def __ChooseHValues(self, dold, h):
+        Hnew = []
+        for i in range(h):
+            Hnew.append(dold[i][1])
+        return Hnew
+    def __CStep(self, X, T1, S1, n, h):
+        T = []
+        S = []
+        Hnew = []
+
+        T.append(T1)
+        S.append(S1)
+        for i in range(2):
+            dold = self.__Di2(X, T[i][0], S[i], n)
+            dold.sort(key=KeyFuncion)
+            Hnew = self.__ChooseHValues(dold, h)
+            Tnew, Snew = self.__TS_Count(X, Hnew, h)
+            T.append(Tnew)
+            S.append(Snew)
+        dOutput = self.__Di2(X, T[2][0], S[2], n)
+        dOutput.sort(key=KeyFuncion)
+
+        # return S3, doutput
+        return S[2], dOutput
+
     def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
         diSaver10, diSaver500, diEndVector, dnew, Snew = [], [], [], [], [[], []]
@@ -162,13 +218,16 @@ class MCD:
 
         # Реализация первого пункта задания с созданием 500 di расстояний
         for i in range(cStepNumber):
+            H1 = self.__H1Generate(h, n)
+            T1, S1 = self.__TS_Count(X, H1, h)
+            Snew, dnew = self.__CStep(X, T1, S1, n, h)
 
-            container = self.__CstepForFirstStep(X, n, h, numberItter=2)
-            dnew = container["dnew"].copy()
-            Snew = container["Snew"].copy()
+            # container = self.__CstepForFirstStep(X, n, h, numberItter=2)
+            # dnew = container["dnew"].copy()
+            # Snew = container["Snew"].copy()
 
             diSaver500.append([np.linalg.det(Snew), dnew.copy()])
-
+        
         del dnew
         del Snew
 

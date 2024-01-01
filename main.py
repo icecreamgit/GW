@@ -25,7 +25,7 @@ def main():
     Ncycle = 500
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
-    while n < 600:
+    while Outlier < 0.25:
         LSsaver = []
         MCDsaver = []
         Hubersaver = []
@@ -38,11 +38,11 @@ def main():
             tettaLS = LSObject.LSMatrix(X, Y)
             LSsaver.append(tettaLS.copy())
 
-            # mcdMethod = MCD.MCD(Y, n, p)
-            # xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
-            # xMatrixMCD = filingMatrixX(xall=xVectorMCD, n=h, tetta=tetta)
-            # tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
-            # MCDsaver.append(tettaMCD.copy())
+            mcdMethod = MCD.MCD(Y, n, p)
+            xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
+            xMatrixMCD = filingMatrixX(xall=xVectorMCD, n=h, tetta=tetta)
+            tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
+            MCDsaver.append(tettaMCD.copy())
 
 
             tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
@@ -65,8 +65,8 @@ def main():
         iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, Ncycle)[0])
 
         print(f" i == {n}\n")
-        outSaver.append(n)
-        n += 50
+        outSaver.append(Outlier)
+        Outlier += 0.05
 
     plt.plot()
     plt.xlabel("Выбросы")  # ось абсцисс
