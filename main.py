@@ -22,7 +22,7 @@ def main():
     MObject = MEst.M_Estimators()
 
 
-    Ncycle = 10
+    Ncycle = 1
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
     while Outlier < 0.25:
@@ -71,7 +71,7 @@ def main():
              outSaver, iMCD,
              outSaver, iHuber, outSaver, iCauchy)  # построение графика
     plt.legend(("LS",
-                "MCD"
+                "MCD",
                       "Huber", "Cauchy"))
     plt.show()
 

@@ -64,6 +64,20 @@ class MCD:
         return newList
 
 #####################################################___NEW
+    def __ReturnListX(self, X, Hnew, h):
+        # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
+        newList = [[], []]
+        for i in range(h):
+            j = Hnew[i]
+            newList[0].append(X[0][j])
+            newList[1].append(X[1][j])
+        return newList
+    def __ReturnListY(self, Hnew, h):
+        newList = []
+        for i in range(h):
+            index = Hnew[i]
+            newList.append(self.Y[index])
+        return newList
     def __H1Generate(self, h, n):
         H = []
         vector = [i for i in range(n)]
@@ -152,7 +166,7 @@ class MCD:
         dOutput.sort(key=KeyFuncion)
 
         # return S3, doutput
-        return S[index], dOutput
+        return S[index], Hnew
 
     def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
@@ -185,17 +199,17 @@ class MCD:
             step += 1
         diSaver500.clear()
 
-
+        HiEndVector = []
         # Реализация третьего пункта
         for i in range(10):
             H1 = self.__ChooseHValues(diSaver10[i][1], h)
             T3, S3 = self.__TS_Count(X, H1, h)
-            Snew, dnew = self.__CStepFor10(X, T3, S3, n, h)
-            diEndVector.append([np.linalg.det(Snew), dnew.copy()])
+            Snew, Hnew = self.__CStepFor10(X, T3, S3, n, h)
+            HiEndVector.append([np.linalg.det(Snew), Hnew.copy()])
 
-        diEndVector.sort(key=KeyFuncion)
+        HiEndVector.sort(key=KeyFuncion)
 
-        X = self.__CreateNewListCstep(X, diEndVector[0][1], h)
-        Y = np.array(self.__ReturnY(diEndVector[0][1], h))
+        X = self.__ReturnListX(X, HiEndVector[0][1], h)
+        Y = np.array(self.__ReturnListY(HiEndVector[0][1], h))
         return X, Y
 
