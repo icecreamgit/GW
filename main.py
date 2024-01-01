@@ -52,11 +52,6 @@ def main():
             Cauchysaver.append(tettaMEstCauchy.copy())
             del Y
             del X
-            # print(f" i == {i}\n")
-                  # f"tettaLS:\n{tettaLS}\n")
-                  # f"tettaMCD:\n{tettaMCD}\n"
-                  # f"tettaMEstHuber\n{tettaMEstHuber}\n"
-                  # f"tettaMEstCauchy\n{tettaMEstCauchy}\n")
 
         extraObj = ex.ExtraThings()
         iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle)[0])

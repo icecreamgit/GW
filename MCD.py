@@ -53,19 +53,7 @@ class MCD:
             index = di[i][1]
             newList.append(self.Y[index])
         return newList
-    def __GameOfValues(self, data, h):
-        # Рандомно вытаскиваю из исходной матрицы Х значения
-        newList = [[], []]
-        vector = [i for i in range(self.n)]
 
-        for i in range(h):
-            item = np.random.choice(vector)
-
-            newList[0].append(data[0][item])
-            newList[1].append(data[1][item])
-
-            vector.remove(item)
-        return newList
     def __CreateNewListCstep(self, data, di, h):
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
@@ -74,76 +62,6 @@ class MCD:
             newList[0].append(data[0][index])
             newList[1].append(data[1][index])
         return newList
-    def __Di(self, X, listH, n):
-        B, di = [], []
-        S = np.cov(listH)
-        mean_X0 = np.mean(listH[0])
-        mean_X1 = np.mean(listH[1])
-
-        for i in range(n):
-            B.append([[X[0][i] - mean_X0], [X[1][i] - mean_X1]])
-
-        B = np.array(B)
-        for i in range(n):
-            C0 = reduce(np.dot, [B[i].transpose(), np.linalg.inv(S), B[i]])[0][0]
-            di.append([np.sqrt(C0), i])
-        return di, S
-
-    def __CstepForFirstStep(self, X, n, h, numberItter):
-        # data - матрица из двух векторов: х1 и х2
-        dnew, Snew = [], [[], []]
-
-        JList = self.__GameOfValues(X, h)
-        d0, S0 = self.__Di(X, JList, n)
-        d0.sort(key=KeyFuncion)
-        H1List = self.__CreateNewListCstep(X, d0, h)
-
-        for i in range(numberItter):
-            dold, Sold = self.__Di(X, H1List, n)
-            dold.sort(key=KeyFuncion)
-
-            HnewList = self.__CreateNewListCstep(X, dold, h)
-            dnew, Snew = self.__Di(X, HnewList, n)
-            dnew.sort(key=KeyFuncion)
-
-            detS2 = np.linalg.det(Snew)
-            detS1 = np.linalg.det(Sold)
-
-            H1List = HnewList.copy()
-
-            if math.isclose(detS2, detS1) or math.isclose(detS2, 0.0):
-                break
-
-        return {"dnew": dnew, "Snew": Snew}
-
-    def __CstepForSecondStep(self, X, diVector, n, h, numberItter):
-        # data - матрица из двух векторов: х1 и х2
-        resultVector = []
-
-        for i in range(numberItter):
-
-            dold = diVector[i][1]
-            HoldList = self.__CreateNewListCstep(data=X, di=dold, h=h)
-
-            while(1):
-                dold, Sold = self.__Di(X, HoldList, n)
-                dold.sort(key=KeyFuncion)
-
-                HnewList = self.__CreateNewListCstep(data=X, di=dold, h=h)
-                dnew, Snew = self.__Di(X, HnewList, n)
-                dnew.sort(key=KeyFuncion)
-
-                detS2 = np.linalg.det(Snew)
-                detS1 = np.linalg.det(Sold)
-
-                HoldList = HnewList.copy()
-
-                if math.isclose(detS2, detS1) or math.isclose(detS2, 0.0):
-                    break
-
-
-            resultVector.append([np.linalg.det(Snew), dnew.copy()])
-        return resultVector
 
 #####################################################___NEW
     def __H1Generate(self, h, n):
@@ -246,11 +164,6 @@ class MCD:
             H1 = self.__H1Generate(h, n)
             T1, S1 = self.__TS_Count(X, H1, h)
             Snew, dnew = self.__CStepFor500(X, T1, S1, n, h)
-
-            # container = self.__CstepForFirstStep(X, n, h, numberItter=2)
-            # dnew = container["dnew"].copy()
-            # Snew = container["Snew"].copy()
-
             diSaver500.append([np.linalg.det(Snew), dnew.copy()])
 
         del dnew
@@ -280,7 +193,6 @@ class MCD:
             Snew, dnew = self.__CStepFor10(X, T3, S3, n, h)
             diEndVector.append([np.linalg.det(Snew), dnew.copy()])
 
-        # diEndVector = self.__CstepForSecondStep(X, diSaver10, n, h, numberItter=lowestNumber)
         diEndVector.sort(key=KeyFuncion)
 
         X = self.__CreateNewListCstep(X, diEndVector[0][1], h)
