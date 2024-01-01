@@ -22,7 +22,7 @@ def main():
     MObject = MEst.M_Estimators()
 
 
-    Ncycle = 500
+    Ncycle = 10
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
     while Outlier < 0.25:
@@ -60,7 +60,7 @@ def main():
 
         extraObj = ex.ExtraThings()
         iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle)[0])
-        # iMCD.append(extraObj.MainCount(MCDsaver, tetta, Ncycle)[0])
+        iMCD.append(extraObj.MainCount(MCDsaver, tetta, Ncycle)[0])
         iHuber.append(extraObj.MainCount(Hubersaver, tetta, Ncycle)[0])
         iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, Ncycle)[0])
 
@@ -73,10 +73,10 @@ def main():
     plt.ylabel("Показатель точности")  # ось ординат
     plt.grid()  # включение отображение сетки
     plt.plot(outSaver, iLS,
-             # outSaver, iMCD,
+             outSaver, iMCD,
              outSaver, iHuber, outSaver, iCauchy)  # построение графика
     plt.legend(("LS",
-                # "MCD"
+                "MCD"
                       "Huber", "Cauchy"))
     plt.show()
 

@@ -191,7 +191,7 @@ class MCD:
         for i in range(h):
             Hnew.append(dold[i][1])
         return Hnew
-    def __CStep(self, X, T1, S1, n, h):
+    def __CStepFor500(self, X, T1, S1, n, h):
         T = []
         S = []
         Hnew = []
@@ -210,6 +210,31 @@ class MCD:
 
         # return S3, doutput
         return S[2], dOutput
+    def __CStepFor10(self, X, T3, S3, n, h):
+        T = []
+        S = []
+        Hnew = []
+
+        T.append(T3)
+        S.append(S3)
+        for i in range(10000):
+            dold = self.__Di2(X, T[i][0], S[i], n)
+            dold.sort(key=KeyFuncion)
+            Hnew = self.__ChooseHValues(dold, h)
+            Tnew, Snew = self.__TS_Count(X, Hnew, h)
+            T.append(Tnew)
+            S.append(Snew)
+
+            detS3 = np.linalg.det(S[i])
+            detS4 = np.linalg.det(S[i + 1])
+            if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0):
+                break
+        index = len(T) - 1
+        dOutput = self.__Di2(X, T[index][0], S[index], n)
+        dOutput.sort(key=KeyFuncion)
+
+        # return S3, doutput
+        return S[index], dOutput
 
     def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
@@ -220,14 +245,14 @@ class MCD:
         for i in range(cStepNumber):
             H1 = self.__H1Generate(h, n)
             T1, S1 = self.__TS_Count(X, H1, h)
-            Snew, dnew = self.__CStep(X, T1, S1, n, h)
+            Snew, dnew = self.__CStepFor500(X, T1, S1, n, h)
 
             # container = self.__CstepForFirstStep(X, n, h, numberItter=2)
             # dnew = container["dnew"].copy()
             # Snew = container["Snew"].copy()
 
             diSaver500.append([np.linalg.det(Snew), dnew.copy()])
-        
+
         del dnew
         del Snew
 
@@ -249,8 +274,13 @@ class MCD:
 
 
         # Реализация третьего пункта
+        for i in range(10):
+            H1 = self.__ChooseHValues(diSaver10[i][1], h)
+            T3, S3 = self.__TS_Count(X, H1, h)
+            Snew, dnew = self.__CStepFor10(X, T3, S3, n, h)
+            diEndVector.append([np.linalg.det(Snew), dnew.copy()])
 
-        diEndVector = self.__CstepForSecondStep(X, diSaver10, n, h, numberItter=lowestNumber)
+        # diEndVector = self.__CstepForSecondStep(X, diSaver10, n, h, numberItter=lowestNumber)
         diEndVector.sort(key=KeyFuncion)
 
         X = self.__CreateNewListCstep(X, diEndVector[0][1], h)
