@@ -1,5 +1,4 @@
 import numpy as np
-import random
 import MCD
 import LMS
 import M_Estimators as MEst
@@ -13,16 +12,24 @@ def filingMatrixX(xall, n, tetta):
     Xsaver = np.array(Xsaver)
     return Xsaver
 
+def MiddleTettas(tettas):
+    n = len(tettas)
+    summa = [0., 0., 0.]
+    for vector in tettas:
+        summa += vector
+    summa /= n
+    return summa
+
 def main():
-    n, tetta, p = 200, np.array([1., 1.5, 2.]), 3
+    n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
     h = int( (n+p+1) / 2.)
     outSaver = []
-    Outlier = 0.
+    Outlier = 0.2
     LSObject = LMS.LMS()
     MObject = MEst.M_Estimators()
 
 
-    Ncycle = 1
+    Ncycle = 500
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
     while Outlier < 0.25:
@@ -52,7 +59,11 @@ def main():
             Cauchysaver.append(tettaMEstCauchy.copy())
             del Y
             del X
-
+            print(f" i == {i}\n")
+        L = MiddleTettas(LSsaver)
+        MCD_ = MiddleTettas(MCDsaver)
+        Hub_ = MiddleTettas(Hubersaver)
+        
         extraObj = ex.ExtraThings()
         iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle)[0])
         iMCD.append(extraObj.MainCount(MCDsaver, tetta, Ncycle)[0])

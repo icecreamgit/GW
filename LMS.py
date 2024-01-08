@@ -11,22 +11,14 @@ class LMS:
 
     def ylinealModel(self, n, tetta, outlier):
         # Search y without observation error
-        x1 = (np.random.uniform(0., 10., n))
-        x2 = (np.random.uniform(0., 10., n))
+        x1 = (np.random.uniform(0., 1., n))
+        x2 = (np.random.uniform(0., 1., n))
 
         y = self.calculateYwithoutError(tetta, x1, x2, n)
         xall = [[], []]
 
         # Search observation error
         e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
-
-        # counter = 0
-        # for i in range(len(e)):
-        #     if e[i] == 0:
-        #         counter += 1
-        # print(f"Outlyer:\t{outlier}\n"
-        #       f"counter\t{counter}\n")
-
 
         # Search y_res:
         varMainObservations = 0.01
