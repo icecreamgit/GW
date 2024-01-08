@@ -142,7 +142,7 @@ class MCD:
                 print("ERROR, detS2 > detS1")
 
         # return S3
-        return S[2], Hnew
+        return S[2], T[2]
     def __CStepFor10(self, X, T3, S3, n, h):
         T = []
         S = []
@@ -183,11 +183,9 @@ class MCD:
                 continue
             else:
                 i += 1
-            Snew, Hnew = self.__CStepFor500(X, T1, S1, n, h)
-            HiSaver500.append([np.linalg.det(Snew), Hnew.copy()])
+            Snew, Tnew = self.__CStepFor500(X, T1, S1, n, h)
+            HiSaver500.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
 
-        del dnew
-        del Snew
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
         HiSaver500.sort(key=KeyFuncion)
@@ -202,8 +200,8 @@ class MCD:
         HiEndVector = []
         # Реализация третьего пункта
         for i in range(10):
-            H1 = HiSaver10[i][1].copy()
-            T3, S3 = self.__TS_Count(X, H1, h)
+            S3 = HiSaver10[i][1]
+            T3 = HiSaver10[i][2]
             Snew, Hnew = self.__CStepFor10(X, T3, S3, n, h)
             HiEndVector.append([np.linalg.det(Snew), Hnew.copy()])
 
