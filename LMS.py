@@ -21,8 +21,8 @@ class LMS:
         e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
 
         # Search y_res:
-        varMainObservations = 0.01
-        varEmissions = 0.5
+        varMainObservations = 0.1
+        varEmissions = 1.
         y_res = []
 
         for i in range(n):

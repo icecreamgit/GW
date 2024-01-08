@@ -103,8 +103,7 @@ class MCD:
         T2mean = np.mean(HValuesList[1])
         S = np.cov(HValuesList)
 
-        T.append([T1mean, T2mean])
-        T = np.array(T)
+        T = np.array([T1mean, T2mean])
         return T, S
 
     def __Di2(self, X, T, S, n):
@@ -131,13 +130,17 @@ class MCD:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            dold = self.__Di2(X, T[i][0], S[i], n)
+            dold = self.__Di2(X, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues(dold, h)
             Tnew, Snew = self.__TS_Count(X, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
-        dOutput = self.__Di2(X, T[2][0], S[2], n)
+            detS2 = np.linalg.det(S[i + 1])
+            detS1 = np.linalg.det(S[i])
+            if detS2 > detS1:
+                print("ERROR, detS2 > detS1")
+        dOutput = self.__Di2(X, T[2], S[2], n)
         dOutput.sort(key=KeyFuncion)
 
         # return S3, doutput
@@ -150,7 +153,7 @@ class MCD:
         T.append(T3)
         S.append(S3)
         for i in range(10000):
-            dold = self.__Di2(X, T[i][0], S[i], n)
+            dold = self.__Di2(X, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues(dold, h)
             Tnew, Snew = self.__TS_Count(X, Hnew, h)
@@ -162,7 +165,7 @@ class MCD:
             if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0):
                 break
         index = len(T) - 1
-        dOutput = self.__Di2(X, T[index][0], S[index], n)
+        dOutput = self.__Di2(X, T[index], S[index], n)
         dOutput.sort(key=KeyFuncion)
 
         # return S3, doutput
@@ -174,9 +177,14 @@ class MCD:
         cStepNumber, lowestNumber = 500, 10
 
         # Реализация первого пункта задания с созданием 500 di расстояний
-        for i in range(cStepNumber):
+        i = 0
+        while i < cStepNumber:
             H1 = self.__H1Generate(h, n)
             T1, S1 = self.__TS_Count(X, H1, h)
+            if math.isclose(np.linalg.det(S1), 0.0):
+                continue
+            else:
+                i += 1
             Snew, dnew = self.__CStepFor500(X, T1, S1, n, h)
             diSaver500.append([np.linalg.det(Snew), dnew.copy()])
 

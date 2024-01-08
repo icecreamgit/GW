@@ -12,24 +12,33 @@ def filingMatrixX(xall, n, tetta):
     Xsaver = np.array(Xsaver)
     return Xsaver
 
+
 def MiddleTettas(tettas):
     n = len(tettas)
     summa = [0., 0., 0.]
     for vector in tettas:
-        summa += vector
-    summa /= n
+        i = 0
+        for element in vector:
+            summa[i] += element[0]
+            i += 1
+    for i in range(len(summa)):
+        summa[i] /= n
     return summa
 
 def main():
     n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
     h = int( (n+p+1) / 2.)
-    outSaver = []
+    outSaver, nSaver = [], []
     Outlier = 0.2
     LSObject = LMS.LMS()
     MObject = MEst.M_Estimators()
 
+    if Outlier <= 0.25:
+        h = int(0.75*n)
+    else:
+        h = int((n + p + 1) / 2.)
 
-    Ncycle = 500
+    Ncycle = 3
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
     while Outlier < 0.25:
@@ -73,6 +82,9 @@ def main():
         print(f" i == {n}\n")
         outSaver.append(Outlier)
         Outlier += 0.05
+
+        # nSaver.append(n)
+        # n += 50
 
     plt.plot()
     plt.xlabel("Выбросы")  # ось абсцисс
