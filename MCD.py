@@ -140,11 +140,9 @@ class MCD:
             detS1 = np.linalg.det(S[i])
             if detS2 > detS1:
                 print("ERROR, detS2 > detS1")
-        dOutput = self.__Di2(X, T[2], S[2], n)
-        dOutput.sort(key=KeyFuncion)
 
-        # return S3, doutput
-        return S[2], dOutput
+        # return S3
+        return S[2], Hnew
     def __CStepFor10(self, X, T3, S3, n, h):
         T = []
         S = []
@@ -152,7 +150,8 @@ class MCD:
 
         T.append(T3)
         S.append(S3)
-        for i in range(10000):
+        i = 0
+        while 1:
             dold = self.__Di2(X, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues(dold, h)
@@ -162,18 +161,17 @@ class MCD:
 
             detS3 = np.linalg.det(S[i])
             detS4 = np.linalg.det(S[i + 1])
+            i += 1
             if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0):
                 break
         index = len(T) - 1
-        dOutput = self.__Di2(X, T[index], S[index], n)
-        dOutput.sort(key=KeyFuncion)
 
-        # return S3, doutput
+        # return S3
         return S[index], Hnew
 
     def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
-        diSaver10, diSaver500, diEndVector, dnew, Snew = [], [], [], [], [[], []]
+        HiSaver10, HiSaver500, diEndVector, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 
         # Реализация первого пункта задания с созданием 500 di расстояний
@@ -185,32 +183,26 @@ class MCD:
                 continue
             else:
                 i += 1
-            Snew, dnew = self.__CStepFor500(X, T1, S1, n, h)
-            diSaver500.append([np.linalg.det(Snew), dnew.copy()])
+            Snew, Hnew = self.__CStepFor500(X, T1, S1, n, h)
+            HiSaver500.append([np.linalg.det(Snew), Hnew.copy()])
 
         del dnew
         del Snew
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
-        diSaver500.sort(key=KeyFuncion)
+        HiSaver500.sort(key=KeyFuncion)
 
         # Выбираем 10 векторов с наименьшим значением S
         step = 0
-        while len(diSaver10) < lowestNumber:
-            if step > 0:
-                if diSaver500[step][0] == diSaver500[step-1][0]:
-                    diSaver500.remove(diSaver500[step])
-                    step += 1
-                    continue
-
-            diSaver10.append(diSaver500[step].copy())
+        while len(HiSaver10) < lowestNumber:
+            HiSaver10.append(HiSaver500[step].copy())
             step += 1
-        diSaver500.clear()
+        HiSaver500.clear()
 
         HiEndVector = []
         # Реализация третьего пункта
         for i in range(10):
-            H1 = self.__ChooseHValues(diSaver10[i][1], h)
+            H1 = HiSaver10[i][1].copy()
             T3, S3 = self.__TS_Count(X, H1, h)
             Snew, Hnew = self.__CStepFor10(X, T3, S3, n, h)
             HiEndVector.append([np.linalg.det(Snew), Hnew.copy()])

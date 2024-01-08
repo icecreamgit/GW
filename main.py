@@ -38,7 +38,7 @@ def main():
     else:
         h = int((n + p + 1) / 2.)
 
-    Ncycle = 3
+    Ncycle = 1
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
     while Outlier < 0.25:
