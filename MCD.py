@@ -56,14 +56,9 @@ class MCD:
             newList.append(self.Y[index])
         return newList
     def __H1Generate(self, h, n):
-        H = []
         vector = [i for i in range(n)]
-        for i in range(h):
-
-            item = np.random.choice(vector)
-            H.append(item)
-            vector.remove(item)
-        return H
+        H1 = np.random.choice(vector, size=h, replace=False)
+        return H1
 
     def __TS_Count(self, X, H, h):
         HValuesList = [[], []]
@@ -76,6 +71,7 @@ class MCD:
             HValuesList[0].append(X[0][trueIndex])
             HValuesList[1].append(X[1][trueIndex])
 
+        HValuesList = np.array(HValuesList)
         T1mean = np.mean(HValuesList[0])
         T2mean = np.mean(HValuesList[1])
         S = np.cov(HValuesList)
@@ -156,7 +152,6 @@ class MCD:
                 i += 1
             Snew, Tnew = self.__CStepFor500(X, T1, S1, n, h)
             HiSaver500.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
-        H1.clear()
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
         HiSaver500.sort(key=KeyFuncion)

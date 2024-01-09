@@ -5,7 +5,7 @@ import M_Estimators as MEst
 import ExtraThings as ex
 
 import matplotlib.pyplot as plt
-def filingMatrixX(xall, n, tetta):
+def filingMatrixX(xall, n):
     Xsaver = []
     for i in range(n):
         Xsaver.append([1.0, xall[0][i], xall[1][i]])
@@ -26,7 +26,7 @@ def MiddleTettas(tettas):
     return summa
 
 def main():
-    n, tetta, p = 200, np.array([1., 1.5, 2.]), 3
+    n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
     outSaver, nSaver = [], []
     Outlier = 0.17
     LSObject = LMS.LMS()
@@ -37,7 +37,7 @@ def main():
     Ncycle = 10
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
-    while n < 500:
+    while n < 600:
         LSsaver = []
         MCDsaver = []
         Hubersaver = []
@@ -50,14 +50,14 @@ def main():
 
         for i in range(Ncycle):
             Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
-            X = filingMatrixX(xAll, n, tetta)
+            X = filingMatrixX(xAll, n)
             tettaLS = LSObject.LSMatrix(X, Y)
             LSsaver.append(tettaLS.copy())
             tettaLSTest = np.linalg.lstsq(X, Y, rcond=None)[0]
 
             mcdMethod = MCD.MCD(Y, n, p)
             xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
-            xMatrixMCD = filingMatrixX(xall=xVectorMCD, n=h, tetta=tetta)
+            xMatrixMCD = filingMatrixX(xall=xVectorMCD, n=h)
             tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
             MCDsaver.append(tettaMCD.copy())
 
@@ -70,9 +70,9 @@ def main():
             del Y
             del X
             print(f" i == {i}\n")
-        L = MiddleTettas(LSsaver)
-        MCD_ = MiddleTettas(MCDsaver)
-        Hub_ = MiddleTettas(Hubersaver)
+        # L = MiddleTettas(LSsaver)
+        # MCD_ = MiddleTettas(MCDsaver)
+        # Hub_ = MiddleTettas(Hubersaver)
         
         extraObj = ex.ExtraThings()
         iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle)[0])
