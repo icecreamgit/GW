@@ -39,29 +39,6 @@ class MCD:
         self.n = n
         self.p = p
         self.Y = Y
-    def __LineInVector(self, vector):
-        newList = [[], []]
-        counter = 0
-        for line in newList:
-            for j in range(self.n):
-                line.append(vector[counter])
-                counter += 1
-        return newList
-    def __ReturnY(self, di, h):
-        newList = []
-        for i in range(h):
-            index = di[i][1]
-            newList.append(self.Y[index])
-        return newList
-
-    def __CreateNewListCstep(self, data, di, h):
-        # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
-        newList = [[], []]
-        for i in range(h):
-            index = di[i][1]
-            newList[0].append(data[0][index])
-            newList[1].append(data[1][index])
-        return newList
 
 #####################################################___NEW
     def __ReturnListX(self, X, Hnew, h):
@@ -136,10 +113,6 @@ class MCD:
             Tnew, Snew = self.__TS_Count(X, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
-            detS2 = np.linalg.det(S[i + 1])
-            detS1 = np.linalg.det(S[i])
-            if detS2 > detS1:
-                print("ERROR, detS2 > detS1")
 
         # return S3
         return S[2], T[2]
@@ -164,14 +137,12 @@ class MCD:
             i += 1
             if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0):
                 break
-        index = len(T) - 1
-
         # return S3
-        return S[index], Hnew
+        return S[i], T[i]
 
     def FindRelativeDistances(self, X, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
-        HiSaver10, HiSaver500, diEndVector, dnew, Snew = [], [], [], [], [[], []]
+        HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 
         # Реализация первого пункта задания с созданием 500 di расстояний
@@ -185,7 +156,7 @@ class MCD:
                 i += 1
             Snew, Tnew = self.__CStepFor500(X, T1, S1, n, h)
             HiSaver500.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
-
+        H1.clear()
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
         HiSaver500.sort(key=KeyFuncion)
@@ -202,12 +173,18 @@ class MCD:
         for i in range(10):
             S3 = HiSaver10[i][1]
             T3 = HiSaver10[i][2]
-            Snew, Hnew = self.__CStepFor10(X, T3, S3, n, h)
-            HiEndVector.append([np.linalg.det(Snew), Hnew.copy()])
+            Snew, Tnew = self.__CStepFor10(X, T3, S3, n, h)
+            HiEndVector.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
 
         HiEndVector.sort(key=KeyFuncion)
 
-        X = self.__ReturnListX(X, HiEndVector[0][1], h)
-        Y = np.array(self.__ReturnListY(HiEndVector[0][1], h))
+        Snew = HiEndVector[0][1]
+        Tnew = HiEndVector[0][2]
+        diEnd = self.__Di2(X, Tnew, Snew, n)
+        diEnd.sort(key=KeyFuncion)
+        HEnd = self.__ChooseHValues(diEnd, h)
+
+        X = self.__ReturnListX(X, HEnd, h)
+        Y = np.array(self.__ReturnListY(HEnd, h))
         return X, Y
 

@@ -11,8 +11,8 @@ class LMS:
 
     def ylinealModel(self, n, tetta, outlier):
         # Search y without observation error
-        x1 = (np.random.uniform(0., 1., n))
-        x2 = (np.random.uniform(0., 1., n))
+        x1 = np.random.uniform(0., 1., n)
+        x2 = np.random.uniform(0., 1., n)
 
         y = self.calculateYwithoutError(tetta, x1, x2, n)
         xall = [[], []]
@@ -22,7 +22,7 @@ class LMS:
 
         # Search y_res:
         varMainObservations = 0.1
-        varEmissions = 1.
+        varEmissions = 0.5
         y_res = []
 
         for i in range(n):

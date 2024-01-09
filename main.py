@@ -26,33 +26,34 @@ def MiddleTettas(tettas):
     return summa
 
 def main():
-    n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
-    h = int( (n+p+1) / 2.)
+    n, tetta, p = 200, np.array([1., 1.5, 2.]), 3
     outSaver, nSaver = [], []
-    Outlier = 0.2
+    Outlier = 0.17
     LSObject = LMS.LMS()
     MObject = MEst.M_Estimators()
 
-    if Outlier <= 0.25:
-        h = int(0.75*n)
-    else:
-        h = int((n + p + 1) / 2.)
 
-    Ncycle = 1
+
+    Ncycle = 10
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
-    while Outlier < 0.25:
+    while n < 500:
         LSsaver = []
         MCDsaver = []
         Hubersaver = []
         Cauchysaver = []
 
-        for i in range(Ncycle):
+        if Outlier <= 0.25:
+            h = int(0.75 * n)
+        else:
+            h = int((n + p + 1) / 2.)
 
+        for i in range(Ncycle):
             Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
             X = filingMatrixX(xAll, n, tetta)
             tettaLS = LSObject.LSMatrix(X, Y)
             LSsaver.append(tettaLS.copy())
+            tettaLSTest = np.linalg.lstsq(X, Y, rcond=None)[0]
 
             mcdMethod = MCD.MCD(Y, n, p)
             xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
@@ -80,19 +81,19 @@ def main():
         iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, Ncycle)[0])
 
         print(f" i == {n}\n")
-        outSaver.append(Outlier)
-        Outlier += 0.05
+        # outSaver.append(Outlier)
+        # Outlier += 0.05
 
-        # nSaver.append(n)
-        # n += 50
+        nSaver.append(n)
+        n += 40
 
     plt.plot()
     plt.xlabel("Выбросы")  # ось абсцисс
     plt.ylabel("Показатель точности")  # ось ординат
     plt.grid()  # включение отображение сетки
-    plt.plot(outSaver, iLS,
-             outSaver, iMCD,
-             outSaver, iHuber, outSaver, iCauchy)  # построение графика
+    plt.plot(nSaver, iLS,
+             nSaver, iMCD,
+             nSaver, iHuber, nSaver, iCauchy)  # построение графика
     plt.legend(("LS",
                 "MCD",
                       "Huber", "Cauchy"))
