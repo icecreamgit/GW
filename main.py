@@ -27,17 +27,18 @@ def MiddleTettas(tettas):
 
 def main():
     n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
-    outSaver, nSaver = [], []
+    limit = 1.0
     Outlier = 0.17
-    LSObject = LMS.LMS()
-    MObject = MEst.M_Estimators()
 
-
-
-    Ncycle = 10
+    outSaver, nSaver = [], []
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
-    while n < 600:
+    LSObject = LMS.LS()
+    MObject = MEst.M_Estimators()
+
+    Ncycle = 10
+
+    while Outlier <= 0.25:
         LSsaver = []
         MCDsaver = []
         Hubersaver = []
@@ -49,17 +50,20 @@ def main():
             h = int((n + p + 1) / 2.)
 
         for i in range(Ncycle):
-            Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier)
-            X = filingMatrixX(xAll, n)
-            tettaLS = LSObject.LSMatrix(X, Y)
-            LSsaver.append(tettaLS.copy())
-            tettaLSTest = np.linalg.lstsq(X, Y, rcond=None)[0]
 
-            mcdMethod = MCD.MCD(Y, n, p)
-            xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, n=n, h=h)
+            Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier, limit=limit)
+
+            mcdMethod = MCD.MCD()
+            xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
             xMatrixMCD = filingMatrixX(xall=xVectorMCD, n=h)
             tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
             MCDsaver.append(tettaMCD.copy())
+
+
+            X = filingMatrixX(xAll, n)
+            tettaLS = LSObject.LSMatrix(X, Y)
+            LSsaver.append(tettaLS.copy())
+            # tettaLSTest = np.linalg.lstsq(X, Y, rcond=None)[0]
 
 
             tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
@@ -70,9 +74,6 @@ def main():
             del Y
             del X
             print(f" i == {i}\n")
-        # L = MiddleTettas(LSsaver)
-        # MCD_ = MiddleTettas(MCDsaver)
-        # Hub_ = MiddleTettas(Hubersaver)
         
         extraObj = ex.ExtraThings()
         iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle)[0])
@@ -81,22 +82,24 @@ def main():
         iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, Ncycle)[0])
 
         print(f" i == {n}\n")
-        # outSaver.append(Outlier)
-        # Outlier += 0.05
+        outSaver.append(Outlier)
+        Outlier += 0.05
 
-        nSaver.append(n)
-        n += 40
+        # nSaver.append(n)
+        # n += 40
 
     plt.plot()
     plt.xlabel("Выбросы")  # ось абсцисс
     plt.ylabel("Показатель точности")  # ось ординат
     plt.grid()  # включение отображение сетки
-    plt.plot(nSaver, iLS,
-             nSaver, iMCD,
-             nSaver, iHuber, nSaver, iCauchy)  # построение графика
+    plt.plot(outSaver, iLS,
+             outSaver, iMCD,
+             outSaver, iHuber,
+             outSaver, iCauchy)  # построение графика
     plt.legend(("LS",
                 "MCD",
-                      "Huber", "Cauchy"))
+                "Huber",
+                "Cauchy"))
     plt.show()
 
 if __name__ == '__main__':

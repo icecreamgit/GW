@@ -7,12 +7,6 @@ def KeyFuncion(item):
     return item[0]
 
 class MCD:
-    def __init__(self, Y, n, p):
-        self.n = n
-        self.p = p
-        self.Y = Y
-
-#####################################################___NEW
     def __ReturnListX(self, X, Hnew, h):
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
@@ -21,11 +15,11 @@ class MCD:
             newList[0].append(X[0][j])
             newList[1].append(X[1][j])
         return newList
-    def __ReturnListY(self, Hnew, h):
+    def __ReturnListY(self, Y, Hnew, h):
         newList = []
         for i in range(h):
             index = Hnew[i]
-            newList.append(self.Y[index])
+            newList.append(Y[index])
         return newList
     def __H1Generate(self, h, n):
         vector = [i for i in range(n)]
@@ -89,7 +83,7 @@ class MCD:
                 break
         # return S3
         return S[len(S) - 1], T[len(T) - 1]
-    def __CStepFor10(self, X, T3, S3, n, h):
+    def __CStepFor10(self, X, Y, T3, S3, n, h):
         T = []
         S = []
         Hnew = []
@@ -113,7 +107,7 @@ class MCD:
         # return S3
         return S[i], T[i]
 
-    def FindRelativeDistances(self, X, n, h):
+    def FindRelativeDistances(self, X, Y, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
         HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
@@ -145,7 +139,7 @@ class MCD:
         for i in range(10):
             S3 = HiSaver10[i][1]
             T3 = HiSaver10[i][2]
-            Snew, Tnew = self.__CStepFor10(X, T3, S3, n, h)
+            Snew, Tnew = self.__CStepFor10(X, Y, T3, S3, n, h)
             T_H_EndVector.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
 
         T_H_EndVector.sort(key=KeyFuncion)
@@ -157,6 +151,6 @@ class MCD:
         HEnd = self.__ChooseHValues(diEnd, h)
 
         X = self.__ReturnListX(X, HEnd, h)
-        Y = np.array(self.__ReturnListY(HEnd, h))
+        Y = np.array(self.__ReturnListY(Y, HEnd, h))
         return X, Y
 

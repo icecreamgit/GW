@@ -2,17 +2,17 @@ import math
 
 import numpy as np
 
-class LMS:
+class LS:
     def calculateYwithoutError(self, t, x1, x2, size):
         y_ = np.zeros((size,))
         for i in range(size):
             y_[i] = t[0] + t[1] * x1[i] + t[2] * x2[i]
         return y_
 
-    def ylinealModel(self, n, tetta, outlier):
+    def ylinealModel(self, n, tetta, outlier, limit):
         # Search y without observation error
-        x1 = np.random.uniform(0., 1., n)
-        x2 = np.random.uniform(0., 1., n)
+        x1 = np.random.uniform(0., limit, n)
+        x2 = np.random.uniform(0., limit, n)
 
         y = self.calculateYwithoutError(tetta, x1, x2, n)
         xall = [[], []]
