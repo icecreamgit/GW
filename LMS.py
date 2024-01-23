@@ -22,7 +22,7 @@ class LMS:
 
         # Search y_res:
         varMainObservations = 0.1
-        varEmissions = 0.5
+        varEmissions = 50.
         y_res = []
 
         for i in range(n):
@@ -38,8 +38,8 @@ class LMS:
         return y_res, xall
 
     def LSMatrix(self, x, y):
-        C0 = np.dot(x.transpose(), x)
+        C0 = np.dot(x.T, x)
         C1 = np.linalg.inv(C0)
-        C2 = np.dot(C1, x.transpose())
+        C2 = np.dot(C1, x.T)
         C3 = np.dot(C2, y)
         return C3

@@ -1,35 +1,7 @@
-import random
 from functools import reduce
 
 import numpy as np
 import math
-
-
-class Transform:
-    # Меняем горизонтальный вид элементов матрицы на вертикальный
-    def __init__(self, X, n):
-        self.X = X
-        self.n = n
-    def MatrixInVector(self, xInterm, X=None, n=None):
-        # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
-        if isinstance(X, str):
-            count = 0
-            for line in xInterm:
-                count += 1
-                for i in range(self.n):
-                    line.append(self.X[i][count])
-        else:
-            count = 0
-            for line in xInterm:
-                count += 1
-                for i in range(n):
-                    line.append(X[i][count])
-        return xInterm
-    def VectorInMatrix(self, X, xNew):
-        n = len(X[0])
-        for j in range(n):
-            xNew.append([1., X[0][j], X[1][j]])
-        return np.array(xNew)
 
 def KeyFuncion(item):
     return item[0]
@@ -79,7 +51,7 @@ class MCD:
         T = np.array([T1mean, T2mean])
         return T, S
 
-    def __Di2(self, X, T, S, n):
+    def __Di(self, X, T, S, n):
         B, di = [], []
 
         for i in range(n):
@@ -103,15 +75,20 @@ class MCD:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            dold = self.__Di2(X, T[i], S[i], n)
+            dold = self.__Di(X, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues(dold, h)
             Tnew, Snew = self.__TS_Count(X, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
 
+            detS1 = np.linalg.det(S[i])
+            detS2 = np.linalg.det(S[i + 1])
+            if math.isclose(detS2, 0.0):
+                print(f"inside method c500 detS2 is zero")
+                break
         # return S3
-        return S[2], T[2]
+        return S[len(S) - 1], T[len(T) - 1]
     def __CStepFor10(self, X, T3, S3, n, h):
         T = []
         S = []
@@ -121,7 +98,7 @@ class MCD:
         S.append(S3)
         i = 0
         while 1:
-            dold = self.__Di2(X, T[i], S[i], n)
+            dold = self.__Di(X, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues(dold, h)
             Tnew, Snew = self.__TS_Count(X, Hnew, h)
@@ -163,19 +140,19 @@ class MCD:
             step += 1
         HiSaver500.clear()
 
-        HiEndVector = []
+        T_H_EndVector = []
         # Реализация третьего пункта
         for i in range(10):
             S3 = HiSaver10[i][1]
             T3 = HiSaver10[i][2]
             Snew, Tnew = self.__CStepFor10(X, T3, S3, n, h)
-            HiEndVector.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
+            T_H_EndVector.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
 
-        HiEndVector.sort(key=KeyFuncion)
+        T_H_EndVector.sort(key=KeyFuncion)
 
-        Snew = HiEndVector[0][1]
-        Tnew = HiEndVector[0][2]
-        diEnd = self.__Di2(X, Tnew, Snew, n)
+        Snew = T_H_EndVector[0][1]
+        Tnew = T_H_EndVector[0][2]
+        diEnd = self.__Di(X, Tnew, Snew, n)
         diEnd.sort(key=KeyFuncion)
         HEnd = self.__ChooseHValues(diEnd, h)
 
