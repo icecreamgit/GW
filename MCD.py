@@ -40,8 +40,7 @@ class MCD:
         HValuesList = np.array(HValuesList)
         T1mean = np.mean(HValuesList[0])
         T2mean = np.mean(HValuesList[1])
-        S = np.cov(HValuesList)
-
+        S = np.cov(HValuesList[0], HValuesList[1])
         T = np.array([T1mean, T2mean])
         return T, S
 

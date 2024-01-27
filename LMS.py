@@ -9,7 +9,36 @@ class LS:
             y_[i] = t[0] + t[1] * x1[i] + t[2] * x2[i]
         return y_
 
-    def ylinealModel(self, n, tetta, outlier, limit):
+
+    def ylinealModelTest(self, n, tetta, outlier, limit, varMainObservations, varEmissions):
+        # Search observation error
+        e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
+
+        x1 = []
+        x2 = []
+        # Search y without observation error
+        for i in range(n):
+            if e[i] == 1:
+                x1.append(np.random.uniform(0., limit) + np.random.normal(0, np.sqrt(varMainObservations)))
+                x2.append(np.random.uniform(0., limit) + np.random.normal(0, np.sqrt(varMainObservations)))
+            else:
+                x1.append(np.random.uniform(0., limit) + np.random.normal(0, np.sqrt(varEmissions)))
+                x2.append(np.random.uniform(0., limit) + np.random.normal(0, np.sqrt(varEmissions)))
+
+        x1 = np.array(x1)
+        x2 = np.array(x2)
+        y = self.calculateYwithoutError(tetta, x1, x2, n)
+        xall = [[], []]
+
+
+        for i in range(n):
+            xall[0].append(x1[i])
+            xall[1].append(x2[i])
+        y_res = np.array(y).reshape(n, 1)
+
+        return y_res, xall
+
+    def ylinealModel(self, n, tetta, outlier, limit, varMainObservations, varEmissions):
         # Search y without observation error
         x1 = np.random.uniform(0., limit, n)
         x2 = np.random.uniform(0., limit, n)
@@ -21,8 +50,7 @@ class LS:
         e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
 
         # Search y_res:
-        varMainObservations = 0.1
-        varEmissions = 50.
+
         y_res = []
 
         for i in range(n):

@@ -27,8 +27,10 @@ def MiddleTettas(tettas):
 
 def main():
     n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
-    limit = 1.0
+    limit = 10.0
     Outlier = 0.17
+    varMainObservations = 0.1
+    varEmissions = 50.
 
     outSaver, nSaver = [], []
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
@@ -36,7 +38,10 @@ def main():
     LSObject = LMS.LS()
     MObject = MEst.M_Estimators()
 
-    Ncycle = 10
+
+
+
+    Ncycle = 2
 
     while Outlier <= 0.25:
         LSsaver = []
@@ -44,14 +49,11 @@ def main():
         Hubersaver = []
         Cauchysaver = []
 
-        if Outlier <= 0.25:
-            h = int(0.75 * n)
-        else:
-            h = int((n + p + 1) / 2.)
+        h = int((1. - Outlier) * n)
 
         for i in range(Ncycle):
 
-            Y, xAll = LSObject.ylinealModel(n=n, tetta=tetta, outlier=Outlier, limit=limit)
+            Y, xAll = LSObject.ylinealModel(n, tetta, Outlier, limit, varMainObservations, varEmissions)
 
             mcdMethod = MCD.MCD()
             xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
@@ -71,8 +73,6 @@ def main():
 
             tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
             Cauchysaver.append(tettaMEstCauchy.copy())
-            del Y
-            del X
             print(f" i == {i}\n")
         
         extraObj = ex.ExtraThings()
