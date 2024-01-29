@@ -26,30 +26,33 @@ class MCD:
         H1 = np.random.choice(vector, size=h, replace=False)
         return H1
 
-    def __TS_Count(self, X, H, h):
-        HValuesList = [[], []]
-        T1mean, T2mean, T = 0.0, 0.0, []
-        S = [[], []]
-
+    def __TS_Count(self, X, Y, H, h):
+        x1 = []
+        x2 = []
+        YValuesList = []
         # Создание Х1 и Х2, принадлежащие H вектору
         for i in range(h):
             trueIndex = H[i]
-            HValuesList[0].append(X[0][trueIndex])
-            HValuesList[1].append(X[1][trueIndex])
+            x1.append(X[0][trueIndex])
+            x2.append(X[1][trueIndex])
+            YValuesList.append(Y[trueIndex][0])
 
-        HValuesList = np.array(HValuesList)
-        T1mean = np.mean(HValuesList[0])
-        T2mean = np.mean(HValuesList[1])
+        x = np.stack((x1, x2), axis=0)
 
-        S = np.cov(HValuesList[0], HValuesList[1], bias=True)
-        T = np.array([T1mean, T2mean])
+        T1mean = np.mean(x[0])
+        T2mean = np.mean(x[1])
+        T3mean = np.mean(YValuesList)
+
+
+        S = np.cov(x, YValuesList, bias=True)
+        T = np.array([T1mean, T2mean, T3mean])
         return T, S
 
-    def __Di(self, X, T, S, n):
+    def __Di(self, X, Y, T, S, n):
         B, di = [], []
 
         for i in range(n):
-            B.append([[X[0][i] - T[0]], [X[1][i] - T[1]]])
+            B.append([[X[0][i] - T[0]], [X[1][i] - T[1]], [Y[i][0] - T[2]]])
 
         B = np.array(B)
         for i in range(n):
@@ -62,7 +65,7 @@ class MCD:
         for i in range(h):
             Hnew.append(dold[i][1])
         return Hnew
-    def __CStepFor500(self, X, T1, S1, n, h):
+    def __CStepFor500(self, X, Y, T1, S1, n, h):
         T = []
         S = []
         Hnew = []
@@ -70,10 +73,10 @@ class MCD:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            dold = self.__Di(X, T[i], S[i], n)
+            dold = self.__Di(X, Y, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues(dold, h)
-            Tnew, Snew = self.__TS_Count(X, Hnew, h)
+            Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
 
@@ -93,10 +96,10 @@ class MCD:
         S.append(S3)
         i = 0
         while 1:
-            dold = self.__Di(X, T[i], S[i], n)
+            dold = self.__Di(X, Y, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues(dold, h)
-            Tnew, Snew = self.__TS_Count(X, Hnew, h)
+            Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
 
@@ -117,12 +120,12 @@ class MCD:
         i = 0
         while i < cStepNumber:
             H1 = self.__H1Generate(h, n)
-            T1, S1 = self.__TS_Count(X, H1, h)
+            T1, S1 = self.__TS_Count(X, Y, H1, h)
             if math.isclose(np.linalg.det(S1), 0.0):
                 continue
             else:
                 i += 1
-            Snew, Tnew = self.__CStepFor500(X, T1, S1, n, h)
+            Snew, Tnew = self.__CStepFor500(X, Y, T1, S1, n, h)
             HiSaver500.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
@@ -147,11 +150,10 @@ class MCD:
 
         Snew = T_H_EndVector[0][1]
         Tnew = T_H_EndVector[0][2]
-        diEnd = self.__Di(X, Tnew, Snew, n)
+        diEnd = self.__Di(X, Y, Tnew, Snew, n)
         diEnd.sort(key=KeyFuncion)
         HEnd = self.__ChooseHValues(diEnd, h)
 
         X_ = self.__ReturnListX(X, HEnd, h)
         Y_ = np.array(self.__ReturnListY(Y, HEnd, h))
         return X_, Y_
-

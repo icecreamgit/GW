@@ -28,6 +28,12 @@ class LS:
         x1 = np.array(x1)
         x2 = np.array(x2)
         y = self.calculateYwithoutError(tetta, x1, x2, n)
+        y_res = []
+        for i in range(n):
+            if e[i] == 1:
+                y_res.append(y[i] + np.random.normal(0, np.sqrt(varMainObservations)))
+            else:
+                y_res.append(y[i] + np.random.normal(0, np.sqrt(varEmissions)))
         xall = [[], []]
 
 

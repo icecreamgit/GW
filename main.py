@@ -1,5 +1,8 @@
 import numpy as np
 import MCD
+import MCD_Test
+import MCD_Three_variables
+
 import LMS
 import M_Estimators as MEst
 import ExtraThings as ex
@@ -37,15 +40,16 @@ def main():
 
     LSObject = LMS.LS()
     MObject = MEst.M_Estimators()
-
-
-
+    mcdMethod = MCD.MCD()
+    mcdMethod_test = MCD_Test.MCD()
+    mcdMethod_three_var = MCD_Three_variables.MCD()
 
     Ncycle = 2
 
     while Outlier <= 0.25:
         LSsaver = []
         MCDsaver = []
+        MCDsaver_ = []
         Hubersaver = []
         Cauchysaver = []
 
@@ -55,12 +59,16 @@ def main():
 
             Y, xAll = LSObject.ylinealModel(n, tetta, Outlier, limit, varMainObservations, varEmissions)
 
-            mcdMethod = MCD.MCD()
-            xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
-            xMatrixMCD = filingMatrixX(xall=xVectorMCD, n=h)
-            tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
-            MCDsaver.append(tettaMCD.copy())
 
+            xVectorMCD_, yVectorMCD_ = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
+            xMatrixMCD_ = filingMatrixX(xall=xVectorMCD_, n=h)
+            tettaMCD_ = LSObject.LSMatrix(xMatrixMCD_, yVectorMCD_)
+            MCDsaver_.append(tettaMCD_.copy())
+
+            # xVectorMCD, yVectorMCD = mcdMethod.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
+            # xMatrixMCD = filingMatrixX(xall=xVectorMCD, n=h)
+            # tettaMCD = LSObject.LSMatrix(xMatrixMCD, yVectorMCD)
+            # MCDsaver.append(tettaMCD.copy())
 
             X = filingMatrixX(xAll, n)
             tettaLS = LSObject.LSMatrix(X, Y)
