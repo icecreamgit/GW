@@ -29,22 +29,22 @@ class MCD:
     def __TS_Count(self, X, Y, H, h):
         x1 = []
         x2 = []
-        YValuesList = []
+        y = []
         # Создание Х1 и Х2, принадлежащие H вектору
         for i in range(h):
             trueIndex = H[i]
             x1.append(X[0][trueIndex])
             x2.append(X[1][trueIndex])
-            YValuesList.append(Y[trueIndex][0])
+            y.append(Y[trueIndex][0])
 
-        x = np.stack((x1, x2), axis=0)
+        x = np.stack((x1, x2, y))
 
         T1mean = np.mean(x[0])
         T2mean = np.mean(x[1])
-        T3mean = np.mean(YValuesList)
+        T3mean = np.mean(y)
 
 
-        S = np.cov(x, YValuesList, bias=True)
+        S = np.cov(x, bias=True)
         T = np.array([T1mean, T2mean, T3mean])
         return T, S
 
@@ -55,8 +55,8 @@ class MCD:
             B.append([[X[0][i] - T[0]], [X[1][i] - T[1]], [Y[i][0] - T[2]]])
 
         B = np.array(B)
+        Sinv = np.linalg.inv(S)
         for i in range(n):
-            Sinv = np.linalg.inv(S)
             C0 = reduce(np.dot, [B[i].T, Sinv, B[i]])[0][0]
             di.append([np.sqrt(C0), i])
         return di
