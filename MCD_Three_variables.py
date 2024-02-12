@@ -43,8 +43,8 @@ class MCD:
         T2mean = np.mean(x[1])
         T3mean = np.mean(y)
 
-
         S = np.cov(x, bias=True)
+
         T = np.array([T1mean, T2mean, T3mean])
         return T, S
 

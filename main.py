@@ -31,9 +31,9 @@ def MiddleTettas(tettas):
 def main():
     n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
     limit = 10.0
-    Outlier = 0.17
+    Outlier = 0.05
     varMainObservations = 0.1
-    varEmissions = 50.
+    varEmissions = 1.
 
     outSaver, nSaver = [], []
     iLS, iMCD, iCauchy, iHuber = [], [], [], []
