@@ -1,110 +1,29 @@
 import numpy as np
-import MCD
-import MCD_Test
-import MCD_Three_variables
-
-import LMS
-import M_Estimators as MEst
-import ExtraThings as ex
-
-import matplotlib.pyplot as plt
-
-
-def filingMatrixX(xall, n):
-    Xsaver = []
-    for i in range(n):
-        Xsaver.append([1.0, xall[0][i], xall[1][i]])
-    Xsaver = np.array(Xsaver)
-    return Xsaver
-
-
-def MiddleTettas(tettas):
-    n = len(tettas)
-    summa = [0., 0., 0.]
-    for vector in tettas:
-        i = 0
-        for element in vector:
-            summa[i] += element[0]
-            i += 1
-    for i in range(len(summa)):
-        summa[i] /= n
-    return summa
-
+import stands.StandForFourMethods as StandForFourMethods
+import stands.StandForDistansesMCD as StandForDistansesMCD
 
 def main():
     n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
     limit = 1.0
-    Outlier = 0.05
-    varMainObservations = 0.1
-    varEmissions = 1.
+    outlier = 0.05
+    nCycle = 10
 
-    outSaver, nSaver = [], []
-    iLS, iMCD, iCauchy, iHuber = [], [], [], []
+    # Only: "normalModel" "cauchyModel" "exponentModel"
+    mode = "exponentModel"
 
-    LSObject = LMS.LS()
-    MObject = MEst.M_Estimators()
-    mcdMethod = MCD.MCD()
-    mcdMethod_test = MCD_Test.MCD()
-    mcdMethod_three_var = MCD_Three_variables.MCD()
+    # For I model (only normal)
+    emissionZones = [0.1, 0.5, 1., 1.5]
 
-    Ncycle = 50
 
-    while Outlier <= 0.25:
-        LSsaver = []
-        MCDsaver_ = []
-        Hubersaver = []
-        Cauchysaver = []
+    standForFourMethods = StandForFourMethods.StandForFourMethods()
+    standForDistansesMCD = StandForDistansesMCD.StandForDistansesMCD()
 
-        h = int((1. - Outlier) * n)
+    params = {"n": n, "tetta": tetta, "outlier": outlier, "limit": limit,
+              "emissionZones": emissionZones, "nCycle": nCycle}
 
-        for i in range(Ncycle):
-            Y, xAll = LSObject.ylinealModel(n, tetta, Outlier, limit, varMainObservations, varEmissions)
+    standForFourMethods.Main_StandForFourMethods(params, mode)
+    # standForDistansesMCD.Main_StandForDistansesMCD(params)
 
-            xVectorMCD_, yVectorMCD_ = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
-            xMatrixMCD_ = filingMatrixX(xall=xVectorMCD_, n=h)
-            tettaMCD_ = LSObject.LSMatrix(xMatrixMCD_, yVectorMCD_)
-            MCDsaver_.append(tettaMCD_.copy())
-
-            X = filingMatrixX(xAll, n)
-            tettaLS = LSObject.LSMatrix(X, Y)
-            LSsaver.append(tettaLS.copy())
-            # tettaLSTest = np.linalg.lstsq(X, Y, rcond=None)[0]
-
-            tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
-            Hubersaver.append(tettaMEstHuber.copy())
-
-            tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
-            Cauchysaver.append(tettaMEstCauchy.copy())
-            print(f" i == {i}\n")
-
-        extraObj = ex.ExtraThings()
-        iLS.append(extraObj.MainCount(LSsaver, tetta, Ncycle)[0])
-        iMCD.append(extraObj.MainCount(MCDsaver_, tetta, Ncycle)[0])
-        iHuber.append(extraObj.MainCount(Hubersaver, tetta, Ncycle)[0])
-        iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, Ncycle)[0])
-
-        print(f" i == {Outlier}\n")
-        outSaver.append(Outlier)
-        Outlier += 0.03
-
-        # nSaver.append(n)
-        # n += 40
-
-    plt.plot()
-    plt.xlabel("Выбросы")  # ось абсцисс
-    plt.ylabel("Показатель точности")  # ось ординат
-    plt.grid()  # включение отображение сетки
-    plt.plot(outSaver, iLS,
-             outSaver, iMCD,
-             outSaver, iHuber,
-             outSaver, iCauchy
-             )  # построение графика
-    plt.legend(("LS",
-                "MCD",
-                "Huber",
-                "Cauchy"
-                ))
-    plt.show()
 
 
 if __name__ == '__main__':
