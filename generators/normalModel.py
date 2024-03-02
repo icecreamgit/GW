@@ -7,7 +7,7 @@ class NormalModel:
             y_[i] = t[0] + t[1] * x1[i] + t[2] * x2[i]
 
         return y_
-    def Main_normalModel(self, params):
+    def Main_Model(self, params):
         # n, tetta, outlier, limit, emissionZones
         n = params["n"]
         tetta = params["tetta"]
@@ -25,19 +25,25 @@ class NormalModel:
         # Search observation error
         y_res = []
 
+        e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
+
+
         for i in range(n):
-            if x1[i] < 0.5 and x2[i] > 0.5:
-                # I zone
-                y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[0])))
-            elif x1[i] <= 0.5 and x2[i] <= 0.5:
-                # II zone
-                y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[1])))
-            elif x1[i] > 0.5 and x2[i] > 0.5:
-                # III zone
-                y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[2])))
-            elif x1[i] > 0.5 and x2[i] < 0.5:
-                # IV zone
-                y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[3])))
+            if e[i] == 0:
+                if x1[i] < 0.5 and x2[i] > 0.5:
+                    # I zone
+                    y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[0])))
+                elif x1[i] <= 0.5 and x2[i] <= 0.5:
+                    # II zone
+                    y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[1])))
+                elif x1[i] > 0.5 and x2[i] > 0.5:
+                    # III zone
+                    y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[2])))
+                elif x1[i] > 0.5 and x2[i] < 0.5:
+                    # IV zone
+                    y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[3])))
+            else:
+                y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(0.01)))
 
         for i in range(n):
             xall[0].append(x1[i])

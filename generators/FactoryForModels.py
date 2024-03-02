@@ -1,9 +1,13 @@
 import generators.normalModel as normalModel
+import generators.cauchyModel as cauchyModel
+import generators.exponentModel as exponentModel
 
 class FactoryForModels:
-    def main_Factory(self, params):
-        mode = params["mode"]
-        nModel = normalModel.NormalModel()
+    def main_Factory(self, mode):
 
         if mode == "normalModel":
-            nModel = normalModel.NormalModel()
+            return normalModel.NormalModel()
+        elif mode == "cauchyModel":
+            return cauchyModel.cauchyModel()
+        elif mode == "exponentModel":
+            return exponentModel.exponentModel()

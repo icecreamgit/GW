@@ -4,7 +4,7 @@ import mcd_method.MCD_Three_variables as MCD_Three_variables
 import LS
 import M_Estimators as MEst
 import ExtraThings as ex
-import generators.normalModel as linearModel
+import generators.FactoryForModels as FactoryForModels
 
 import matplotlib.pyplot as plt
 
@@ -31,6 +31,7 @@ class StandForFourMethods:
         return summa
 
     def __CreateGrafic(self, fileName, path, outSaverX, paramMethodsY, about, xlabel, ylabel):
+
         iLS = paramMethodsY["iLS"]
         iMCD = paramMethodsY["iMCD"]
         iHuber = paramMethodsY["iHuber"]
@@ -60,22 +61,18 @@ class StandForFourMethods:
         n = params["n"]
         tetta = params["tetta"]
         outlier = params["outlier"]
-        limit = params["limit"]
-        varMainObservations = params["varMainObservations"]
-        varEmissions = params["varEmissions"]
-
-
-
+        nCycle = params["nCycle"]
 
         outSaver, nSaver = [], []
         iLS, iMCD, iCauchy, iHuber = [], [], [], []
 
-        linerObject = linearModel.LinearModel()
+
+        factoryObject = FactoryForModels.FactoryForModels()
+        modelForData = factoryObject.main_Factory(mode)
+
         LSObject = LS.LS()
         MObject = MEst.M_Estimators()
         mcdMethod_three_var = MCD_Three_variables.MCD()
-
-        nCycle = params["nCycle"]
 
         while outlier <= 0.25:
             LSsaver = []
@@ -83,8 +80,10 @@ class StandForFourMethods:
             Hubersaver = []
             Cauchysaver = []
 
+            params["outlier"] = outlier
+
             for i in range(nCycle):
-                Y, xAll = linerObject.Main_linearModel(n, tetta, outlier, limit, varMainObservations, varEmissions)
+                Y, xAll = modelForData.Main_Model(params=params)
                 h = int(n * (1 - outlier))
 
                 xVectorMCD_, yVectorMCD_ = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
@@ -115,7 +114,8 @@ class StandForFourMethods:
 
             # nSaver.append(n)
             # n += 40
-        self.__CreateGrafic(fileName="SFFM_FourMethods", path="grafics/", outSaverX=outSaver,
+        self.__CreateGrafic(fileName=f"SFFM_FourMethods_{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}",
+                            path=f"grafics/{mode}/", outSaverX=outSaver,
                             paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iHuber": iHuber, "iCauchy": iCauchy},
                             about=["LS", "MCD", "Huber", "Cauchy"], xlabel="Выбросы", ylabel="Показатель точности")
         print(outSaver)
