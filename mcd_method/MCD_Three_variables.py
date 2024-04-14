@@ -27,9 +27,8 @@ class MCD:
         return H1
 
     def __TS_Count(self, X, Y, H, h):
-        x1 = []
-        x2 = []
-        y = []
+        x1, x2, y = [], [], []
+
         # Создание Х1 и Х2, принадлежащие H вектору
         for i in range(h):
             trueIndex = H[i]
@@ -113,6 +112,52 @@ class MCD:
 
     def FindRelativeDistances(self, X, Y, n, h):
         # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
+        HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
+        cStepNumber, lowestNumber = 500, 10
+
+        # Реализация первого пункта задания с созданием 500 di расстояний
+        i = 0
+        while i < cStepNumber:
+            H1 = self.__H1Generate(h, n)
+            T1, S1 = self.__TS_Count(X, Y, H1, h)
+            if math.isclose(np.linalg.det(S1), 0.0):
+                continue
+            else:
+                i += 1
+            Snew, Tnew = self.__CStepFor500(X, Y, T1, S1, n, h)
+            HiSaver500.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
+
+        # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
+        HiSaver500.sort(key=KeyFuncion)
+
+        # Выбираем 10 векторов с наименьшим значением S
+        step = 0
+        while len(HiSaver10) < lowestNumber:
+            HiSaver10.append(HiSaver500[step].copy())
+            step += 1
+        HiSaver500.clear()
+
+        T_H_EndVector = []
+        # Реализация третьего пункта
+        for i in range(10):
+            S3 = HiSaver10[i][1]
+            T3 = HiSaver10[i][2]
+            Snew, Tnew = self.__CStepFor10(X, Y, T3, S3, n, h)
+            T_H_EndVector.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
+
+        T_H_EndVector.sort(key=KeyFuncion)
+
+        Snew = T_H_EndVector[0][1]
+        Tnew = T_H_EndVector[0][2]
+        diEnd = self.__Di(X, Y, Tnew, Snew, n)
+        diEnd.sort(key=KeyFuncion)
+        HEnd = self.__ChooseHValues(diEnd, h)
+
+        X_ = self.__ReturnListX(X, HEnd, h)
+        Y_ = np.array(self.__ReturnListY(Y, HEnd, h))
+        return X_, Y_
+
+    def FindRelativeDistances_Modified(self, X, Y, n, h):
         HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 

@@ -32,26 +32,43 @@ class exponentModel:
 
         e = np.random.binomial(n=1, p=(1.0 - outlier), size=n)
 
+        listZeroZone = []
+        listFirstZone = []
+        listSecondZone = []
+        listThirdZone = []
+        listForthZone = []
+
         for i in range(n):
             if e[i] == 0:
                 if x1[i] < 0.5 and x2[i] > 0.5:
                     # I zone
                     y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[0])))
+                    listFirstZone.append([y_res[i], i])
+
                 elif x1[i] <= 0.5 and x2[i] <= 0.5:
                     # II zone
                     y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[1])))
+                    listSecondZone.append([y_res[i], i])
+
                 elif x1[i] > 0.5 and x2[i] > 0.5:
                     # III zone
                     y_res.append(y[i] + np.random.exponential(scale=np.sqrt(emissionZones[2])))
+                    listThirdZone.append([y_res[i], i])
+
                 elif x1[i] > 0.5 and x2[i] < 0.5:
                     # IV zone
                     y_res.append(y[i] + np.random.exponential(scale=np.sqrt(emissionZones[3])))
+                    listForthZone.append([y_res[i], i])
+
             else:
                 y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(0.01)))
+                listZeroZone.append([y_res[i], i])
 
         for i in range(n):
             xall[0].append(x1[i])
             xall[1].append(x2[i])
+        dictionaryZones = {"0": listZeroZone, "1": listFirstZone,
+                                "2": listSecondZone, "3": listThirdZone, "4": listForthZone}
         y_res = np.array(y_res).reshape(n, 1)
 
-        return y_res, xall
+        return y_res, xall, dictionaryZones

@@ -125,7 +125,6 @@ class MCDForStandDistances:
         return saver
 
     def Main_MCDForStandDistances(self, X, Y, n, h):
-        # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
         HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 
