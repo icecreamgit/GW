@@ -24,24 +24,33 @@ class NormalModel:
         # Search observation error
         y_res = []
 
+        listFirstZone = []
+        listSecondZone = []
+        listThirdZone = []
+        listForthZone = []
 
         for i in range(n):
             if x1[i] < 0.5 and x2[i] > 0.5:
                 # I zone
                 y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[0])))
+                listFirstZone.append(i)
             elif x1[i] <= 0.5 and x2[i] <= 0.5:
                 # II zone
                 y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[1])))
+                listSecondZone.append(i)
             elif x1[i] > 0.5 and x2[i] > 0.5:
                 # III zone
                 y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[2])))
+                listThirdZone.append(i)
             elif x1[i] > 0.5 and x2[i] < 0.5:
                 # IV zone
                 y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[3])))
+                listForthZone.append(i)
 
         for i in range(n):
             xall[0].append(x1[i])
             xall[1].append(x2[i])
+        dictionaryZones = {"1": listFirstZone, "2": listSecondZone, "3": listThirdZone, "4": listForthZone}
         y_res = np.array(y_res).reshape(n, 1)
 
-        return y_res, xall
+        return y_res, xall, dictionaryZones
