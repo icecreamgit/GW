@@ -3,10 +3,12 @@ from functools import reduce
 import numpy as np
 import math
 
+
 def KeyFuncion(item):
     return item[0]
 
 class MCD:
+
     def __ReturnListX(self, X, Hnew, h):
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
@@ -15,20 +17,22 @@ class MCD:
             newList[0].append(X[0][j])
             newList[1].append(X[1][j])
         return newList
+
     def __ReturnListY(self, Y, Hnew, h):
         newList = []
         for i in range(h):
             index = Hnew[i]
             newList.append(Y[index])
         return newList
-    def __H1Generate(self, h, n):
-        vector = [i for i in range(n)]
-        H1 = np.random.choice(vector, size=h, replace=False)
+
+    def __H1Generate(self, listOfIndexes, m):
+        H1 = np.random.choice(listOfIndexes, size=m, replace=False)
         return H1
 
     def __TS_Count(self, X, Y, H, h):
-        x1, x2, y = [], [], []
-
+        x1 = []
+        x2 = []
+        y = []
         # Создание Х1 и Х2, принадлежащие H вектору
         for i in range(h):
             trueIndex = H[i]
@@ -59,11 +63,13 @@ class MCD:
             C0 = reduce(np.dot, [B[i].T, Sinv, B[i]])[0][0]
             di.append([np.sqrt(C0), i])
         return di
+
     def __ChooseHValues(self, dold, h):
         Hnew = []
         for i in range(h):
             Hnew.append(dold[i][1])
         return Hnew
+
     def __CStepFor500(self, X, Y, T1, S1, n, h):
         T = []
         S = []
@@ -86,6 +92,7 @@ class MCD:
                 break
         # return S3
         return S[len(S) - 1], T[len(T) - 1]
+
     def __CStepFor10(self, X, Y, T3, S3, n, h):
         T = []
         S = []
@@ -110,15 +117,34 @@ class MCD:
         # return S3
         return S[i], T[i]
 
-    def FindRelativeDistances(self, X, Y, n, h):
-        # Т.к. в питоне нет перегрузки методов, приходится использовать костыль:
+    def __diTransform(self, di):
+        saver = []
+        for element in di:
+            saver.append(element[0])
+        return saver
+
+    def Archiver(self, dictionary, index):
+        struct = dictionary[index]
+        x1, x2, X, Y = [], [], [], []
+
+        for line in struct:
+            x1.append(line[1])
+            x2.append(line[2])
+            Y.append([line[0]])
+        X.append([x1, x2])
+        return X, Y
+
+    def Main_MCD(self, X, Y, dictionaryZones, n, h):
         HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 
-        # Реализация первого пункта задания с созданием 500 di расстояний
+        # return xNew, Ynew
         i = 0
+        m = int(h / 4)
         while i < cStepNumber:
-            H1 = self.__H1Generate(h, n)
+            H1 = ((self.__H1Generate(dictionaryZones["1"], m)) + (self.__H1Generate(dictionaryZones["2"], m)) +
+                  (self.__H1Generate(dictionaryZones["3"], m)) + (self.__H1Generate(dictionaryZones["4"], m)))
+
             T1, S1 = self.__TS_Count(X, Y, H1, h)
             if math.isclose(np.linalg.det(S1), 0.0):
                 continue
@@ -153,6 +179,8 @@ class MCD:
         diEnd.sort(key=KeyFuncion)
         HEnd = self.__ChooseHValues(diEnd, h)
 
+        diVector = self.__diTransform(diEnd)
+
         X_ = self.__ReturnListX(X, HEnd, h)
-        Y_ = np.array(self.__ReturnListY(Y, HEnd, h))
-        return X_, Y_
+        return X_, diVector
+

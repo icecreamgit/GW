@@ -1,7 +1,7 @@
 import mcd_method.MCD_Three_variables as MCD_Three_variables
 import LS
 import M_Estimators as MEst
-import generators.FactoryForModels as FactoryForModels
+import models.FactoryForModels as FactoryForModels
 import matplotlib.pyplot as plt
 
 ###summary###

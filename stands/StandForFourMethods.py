@@ -1,10 +1,11 @@
 import numpy as np
 import mcd_method.MCD_Three_variables as MCD_Three_variables
+import mcd_method.MCD_Modified as MCD_Modified
 
 import LS
 import M_Estimators as MEst
 import ExtraThings as ex
-import generators.FactoryForModels as FactoryForModels
+import models.FactoryForModels as FactoryForModels
 
 import matplotlib.pyplot as plt
 
@@ -61,10 +62,10 @@ class StandForFourMethods:
         ))
         plt.savefig(path + fileName)
         plt.show()
-    def __CreateFileForIndexes(self, name, path, LS, MCD, Huber, Cauchy, message):
+    def __CreateFileForIndexes(self, name, path, LS, MCD, MCD_Modified, Huber, Cauchy, message):
         with open(f"{path}{name}.txt", "w") as file:
             file.write(message)
-            file.write(f"\nLS: {LS}\nMCD: {MCD}\nHuber: {Huber}\nCauchy: {Cauchy}")
+            file.write(f"\nLS: {LS}\nMCD: {MCD}\nMCD_Modified: {MCD_Modified}\nHuber: {Huber}\nCauchy: {Cauchy}")
 
     # Стандартная метод для расчёта показателя точности с выбросами
     # Плюс, отрисовывается график для методов MCD, МНК, М-оценок
@@ -121,8 +122,6 @@ class StandForFourMethods:
             outSaver.append(outlier)
             outlier += 0.03
 
-            # nSaver.append(n)
-            # n += 40
         self.__CreateGrafic(fileName=f"SFFM_FourMethods_{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}",
                             path=f"grafics/{mode}/", outSaverX=outSaver,
                             paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iHuber": iHuber, "iCauchy": iCauchy},
@@ -138,7 +137,7 @@ class StandForFourMethods:
         nCycle = params["nCycle"]
 
         outSaver, nSaver = [], []
-        iLS, iMCD, iCauchy, iHuber = [], [], [], []
+        iLS, iMCD, iMCD_Modified, iCauchy, iHuber = [], [], [], [], []
 
         factoryObject = FactoryForModels.FactoryForModels()
         modelForData = factoryObject.main_Factory(mode)
@@ -146,6 +145,7 @@ class StandForFourMethods:
         LSObject = LS.LS()
         MObject = MEst.M_Estimators()
         mcdMethod_three_var = MCD_Three_variables.MCD()
+        mcdMethod_Modified = MCD_Modified.MCD()
 
         LSsaver = []
         MCDsaver_ = []
@@ -162,9 +162,9 @@ class StandForFourMethods:
             tettaMCD_ = LSObject.LSMatrix(xMatrixMCD_, yVectorMCD_)
             MCDsaver_.append(tettaMCD_.copy())
 
-            xVectorMCD_Modified, yVectorMCD_Modified = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=dictionaryZones, n=n, h=h)
-            xMatrixMCD_Modified = self.__filingMatrixX(xall=xVectorMCD_, n=h)
-            tettaMCD_Modified_ = LSObject.LSMatrix(xMatrixMCD_Modified, yVectorMCD_)
+            xVectorMCD_Modified, yVectorMCD_Modified = mcdMethod_Modified.Main_MCD(X=xAll,Y=Y, dictionaryZones=dictionaryZones, n=n, h=h)
+            xMatrixMCD_Modified = self.__filingMatrixX(xall=xVectorMCD_Modified, n=h)
+            tettaMCD_Modified_ = LSObject.LSMatrix(xMatrixMCD_Modified, yVectorMCD_Modified)
             MCD_Modified_saver_.append(tettaMCD_Modified_.copy())
 
             X = self.__filingMatrixX(xAll, n)
@@ -181,8 +181,10 @@ class StandForFourMethods:
         extraObj = ex.ExtraThings()
         iLS.append(extraObj.MainCount(LSsaver, tetta, nCycle)[0])
         iMCD.append(extraObj.MainCount(MCDsaver_, tetta, nCycle)[0])
+        iMCD_Modified.append(extraObj.MainCount(MCD_Modified_saver_, tetta, nCycle)[0])
         iHuber.append(extraObj.MainCount(Hubersaver, tetta, nCycle)[0])
         iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, nCycle)[0])
+
 
         zones = params["emissionZones"]
         message = f"{mode}_n = {n}_nCycle = {nCycle}_outlier = {outlier}_params = {zones[0]}_{zones[1]}_{zones[2]}_{zones[3]}"
@@ -190,7 +192,7 @@ class StandForFourMethods:
         self.__CreateFileForIndexes(
             name=f"{mode}_n_{n}_nCycle_{nCycle}_outlier_{outlier}_params_{zones[0]}_{zones[1]}_{zones[2]}_{zones[3]}",
             path=f"dataForIndex/{mode}/",
-            LS=iLS, MCD=iMCD, Huber=iHuber, Cauchy=iCauchy, message=message)
+            LS=iLS, MCD=iMCD, MCD_Modified=iMCD_Modified, Huber=iHuber, Cauchy=iCauchy, message=message)
 
 
     # Отрисовка графиков для MCD, МНК, м-оценок с фиксированной долей выбросов,
