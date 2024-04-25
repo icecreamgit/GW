@@ -1,4 +1,5 @@
 from functools import reduce
+from itertools import chain
 
 import numpy as np
 import math
@@ -7,7 +8,7 @@ import math
 def KeyFuncion(item):
     return item[0]
 
-class MCD:
+class MCD_Modified:
 
     def __ReturnListX(self, X, Hnew, h):
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
@@ -133,17 +134,33 @@ class MCD:
             Y.append([line[0]])
         X.append([x1, x2])
         return X, Y
-
-    def Main_MCD(self, X, Y, dictionaryZones, n, h):
+    def __calibrateInputLenght(self, n, numberZones):
+        h = int(n / numberZones)
+        sampleSizes = [h, h, h, h]
+        i = 0
+        while sum(sampleSizes) < n :
+            sampleSizes[i] += 1
+            i += 1
+            if i >= 4:
+                i = 0
+        return sampleSizes
+    def Main_MCD(self, X, Y, dictionaryZones, sampleSizes, n, h):
         HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 
         # return xNew, Ynew
         i = 0
-        m = int(h / 4)
+        samplePlentyH = []
+        if n != h:
+            samplePlentyH = self.__calibrateInputLenght(h, 4)
+        else:
+            samplePlentyH = sampleSizes
+
         while i < cStepNumber:
-            H1 = ((self.__H1Generate(dictionaryZones["1"], m)) + (self.__H1Generate(dictionaryZones["2"], m)) +
-                  (self.__H1Generate(dictionaryZones["3"], m)) + (self.__H1Generate(dictionaryZones["4"], m)))
+            H1 = list(chain(self.__H1Generate(dictionaryZones["1"], samplePlentyH[0]),
+                            self.__H1Generate(dictionaryZones["2"], samplePlentyH[1]),
+                            self.__H1Generate(dictionaryZones["3"], samplePlentyH[2]),
+                            self.__H1Generate(dictionaryZones["4"], samplePlentyH[3])))
 
             T1, S1 = self.__TS_Count(X, Y, H1, h)
             if math.isclose(np.linalg.det(S1), 0.0):
@@ -179,8 +196,7 @@ class MCD:
         diEnd.sort(key=KeyFuncion)
         HEnd = self.__ChooseHValues(diEnd, h)
 
-        diVector = self.__diTransform(diEnd)
-
         X_ = self.__ReturnListX(X, HEnd, h)
-        return X_, diVector
+        Y_ = np.array(self.__ReturnListY(Y, HEnd, h))
+        return X_, Y_
 

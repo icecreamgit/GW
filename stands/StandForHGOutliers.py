@@ -10,8 +10,8 @@ import models.FactoryForModels as FactoryForModels
 import matplotlib.pyplot as plt
 
 
-
-class StandForFourMethods:
+# Класс для работы с неоднородными ошибками
+class StandForHGOutliers:
     def __filingMatrixX(self, xall, n):
         Xsaver = []
         for i in range(n):
@@ -142,10 +142,11 @@ class StandForFourMethods:
         factoryObject = FactoryForModels.FactoryForModels()
         modelForData = factoryObject.main_Factory(mode)
 
+
         LSObject = LS.LS()
         MObject = MEst.M_Estimators()
         mcdMethod_three_var = MCD_Three_variables.MCD()
-        mcdMethod_Modified = MCD_Modified.MCD()
+        mcdMethod_Modified = MCD_Modified.MCD_Modified()
 
         LSsaver = []
         MCDsaver_ = []
@@ -154,13 +155,19 @@ class StandForFourMethods:
         MCD_Modified_saver_ = []
 
         for i in range(nCycle):
-            Y, xAll, dictionaryZones = modelForData.Main_Model(params=params)
+            Y, xAll, dictionaryZones, sampleSizes = modelForData.Main_Model(params=params)
             h = int(n * (1 - outlier))
 
             xVectorMCD_, yVectorMCD_ = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
             xMatrixMCD_ = self.__filingMatrixX(xall=xVectorMCD_, n=h)
             tettaMCD_ = LSObject.LSMatrix(xMatrixMCD_, yVectorMCD_)
             MCDsaver_.append(tettaMCD_.copy())
+
+            xVectorMCD_Modified, yVectorMCD_Modified = mcdMethod_Modified.Main_MCD(X=xAll,Y=Y, dictionaryZones=dictionaryZones,
+                                                                                            sampleSizes=sampleSizes, n=n, h=h)
+            xMatrixMCD_Modified = self.__filingMatrixX(xall=xVectorMCD_Modified, n=h)
+            tettaMCD_Modified_ = LSObject.LSMatrix(xMatrixMCD_Modified, yVectorMCD_Modified)
+            MCD_Modified_saver_.append(tettaMCD_Modified_.copy())
 
             X = self.__filingMatrixX(xAll, n)
             tettaLS = LSObject.LSMatrix(X, Y)
@@ -260,7 +267,7 @@ class StandForFourMethods:
                             paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iHuber": iHuber, "iCauchy": iCauchy},
                             about=["LS", "MCD", "Huber", "Cauchy"], xlabel="Объём выборки", ylabel="Показатель точности")
 
-    def Main_StandForFourMethods(self, params, mode, modeForGrafic):
+    def Main_StandForHGOutliers(self, params, mode, modeForGrafic):
         if modeForGrafic == "grafic":
             self.__FunctionForGraficWithOutliers(params, mode)
         elif modeForGrafic == "textOutput":
