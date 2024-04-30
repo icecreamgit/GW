@@ -69,26 +69,31 @@ class exponentModel:
         listSecondZone = []
         listThirdZone = []
         listForthZone = []
+        Z = []
 
         for i in range(n):
             if x1[i] < middleValue and x2[i] > middleValue:
                 # I zone
                 y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[0])))
+                Z.append([x1[i], x2[i], y_res[i], 1])
                 listFirstZone.append(i)
 
             elif x1[i] <= middleValue and x2[i] <= middleValue:
                 # II zone
                 y_res.append(y[i] + np.random.normal(loc=0, scale=np.sqrt(emissionZones[1])))
+                Z.append([x1[i], x2[i], y_res[i], 2])
                 listSecondZone.append(i)
 
             elif x1[i] > middleValue and x2[i] > middleValue:
                 # III zone
                 y_res.append(y[i] + np.random.exponential(scale=np.sqrt(emissionZones[2])))
+                Z.append([x1[i], x2[i], y_res[i], 3])
                 listThirdZone.append(i)
 
             elif x1[i] > middleValue and x2[i] < middleValue:
                 # IV zone
                 y_res.append(y[i] + np.random.exponential(scale=np.sqrt(emissionZones[3])))
+                Z.append([x1[i], x2[i], y_res[i], 4])
                 listForthZone.append(i)
 
         for i in range(n):
@@ -97,4 +102,4 @@ class exponentModel:
         dictionaryZones = {"1": listFirstZone, "2": listSecondZone, "3": listThirdZone, "4": listForthZone}
         y_res = np.array(y_res).reshape(n, 1)
 
-        return y_res, xall, dictionaryZones, sampleSizes
+        return y_res, xall, dictionaryZones, sampleSizes, Z

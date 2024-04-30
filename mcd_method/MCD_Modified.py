@@ -52,6 +52,40 @@ class MCD_Modified:
         T = np.array([T1mean, T2mean, T3mean])
         return T, S
 
+    def __Di_Modified(self, X, Y, Z, T, S, n):
+        B, di = [], []
+        indexesZones = []
+        for i in range(n):
+            B.append([[Z[i][0] - T[0]], [Z[i][1] - T[1]], [Z[i][2] - T[2]]])
+            indexesZones.append(Z[i][3])
+
+        B = np.array(B)
+        Sinv = np.linalg.inv(S)
+        for i in range(n):
+            C0 = reduce(np.dot, [B[i].T, Sinv, B[i]])[0][0]
+            di.append([np.sqrt(C0), i, indexesZones[i]])
+        return di
+
+    def __ChooseHValues_Modified(self, dold, sampleSizesH, n):
+        Hnew, indexFirstZone, indexSecondZone, indexThirdZone, indexForthZone = [], 0, 0, 0, 0
+
+        for i in range(n):
+            if (dold[i][2] == 1 and indexFirstZone < sampleSizesH[0]):
+                Hnew.append(dold[i][1])
+                indexFirstZone += 1
+
+            if (dold[i][2] == 2 and indexSecondZone < sampleSizesH[1]):
+                Hnew.append(dold[i][1])
+                indexSecondZone += 1
+
+            if (dold[i][2] == 3 and indexThirdZone < sampleSizesH[2]):
+                Hnew.append(dold[i][1])
+                indexThirdZone += 1
+
+            if (dold[i][2] == 4 and indexForthZone < sampleSizesH[3]):
+                Hnew.append(dold[i][1])
+                indexForthZone += 1
+        return Hnew
     def __Di(self, X, Y, T, S, n):
         B, di = [], []
 
@@ -64,13 +98,11 @@ class MCD_Modified:
             C0 = reduce(np.dot, [B[i].T, Sinv, B[i]])[0][0]
             di.append([np.sqrt(C0), i])
         return di
-
     def __ChooseHValues(self, dold, h):
         Hnew = []
         for i in range(h):
             Hnew.append(dold[i][1])
         return Hnew
-
     def __CStepFor500(self, X, Y, T1, S1, n, h):
         T = []
         S = []
@@ -94,18 +126,17 @@ class MCD_Modified:
         # return S3
         return S[len(S) - 1], T[len(T) - 1]
 
-    def __CStepFor10(self, X, Y, T3, S3, n, h):
+    def __CStepFor10(self, X, Y, Z, sampleSizesH, T3, S3, n, h):
         T = []
         S = []
-        Hnew = []
 
         T.append(T3)
         S.append(S3)
         i = 0
         while 1:
-            dold = self.__Di(X, Y, T[i], S[i], n)
+            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues(dold, h)
+            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
             Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
@@ -144,23 +175,23 @@ class MCD_Modified:
             if i >= 4:
                 i = 0
         return sampleSizes
-    def Main_MCD(self, X, Y, dictionaryZones, sampleSizes, n, h):
+    def Main_MCD(self, X, Y, dictionaryZones, sampleSizes, Z, n, h):
         HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 
         # return xNew, Ynew
         i = 0
-        samplePlentyH = []
+        sampleSizeH = []
         if n != h:
-            samplePlentyH = self.__calibrateInputLenght(h, 4)
+            sampleSizesH = self.__calibrateInputLenght(h, 4)
         else:
-            samplePlentyH = sampleSizes
+            sampleSizesH = sampleSizes
 
         while i < cStepNumber:
-            H1 = list(chain(self.__H1Generate(dictionaryZones["1"], samplePlentyH[0]),
-                            self.__H1Generate(dictionaryZones["2"], samplePlentyH[1]),
-                            self.__H1Generate(dictionaryZones["3"], samplePlentyH[2]),
-                            self.__H1Generate(dictionaryZones["4"], samplePlentyH[3])))
+            H1 = list(chain(self.__H1Generate(dictionaryZones["1"], sampleSizesH[0]),
+                            self.__H1Generate(dictionaryZones["2"], sampleSizesH[1]),
+                            self.__H1Generate(dictionaryZones["3"], sampleSizesH[2]),
+                            self.__H1Generate(dictionaryZones["4"], sampleSizesH[3])))
 
             T1, S1 = self.__TS_Count(X, Y, H1, h)
             if math.isclose(np.linalg.det(S1), 0.0):
@@ -185,14 +216,14 @@ class MCD_Modified:
         for i in range(10):
             S3 = HiSaver10[i][1]
             T3 = HiSaver10[i][2]
-            Snew, Tnew = self.__CStepFor10(X, Y, T3, S3, n, h)
+            Snew, Tnew = self.__CStepFor10(X, Y, Z, sampleSizesH, T3, S3, n, h)
             T_H_EndVector.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
 
         T_H_EndVector.sort(key=KeyFuncion)
 
         Snew = T_H_EndVector[0][1]
         Tnew = T_H_EndVector[0][2]
-        diEnd = self.__Di(X, Y, Tnew, Snew, n)
+        diEnd = self.__Di_Modified(X, Y, Z, Tnew, Snew, n)
         diEnd.sort(key=KeyFuncion)
         HEnd = self.__ChooseHValues(diEnd, h)
 

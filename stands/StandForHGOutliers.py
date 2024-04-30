@@ -155,8 +155,8 @@ class StandForHGOutliers:
         MCD_Modified_saver_ = []
 
         for i in range(nCycle):
-            Y, xAll, dictionaryZones, sampleSizes = modelForData.Main_Model(params=params)
-            h = int(n * (1 - outlier))
+            Y, xAll, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
+            h = int(n / 4)
 
             xVectorMCD_, yVectorMCD_ = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
             xMatrixMCD_ = self.__filingMatrixX(xall=xVectorMCD_, n=h)
@@ -164,7 +164,7 @@ class StandForHGOutliers:
             MCDsaver_.append(tettaMCD_.copy())
 
             xVectorMCD_Modified, yVectorMCD_Modified = mcdMethod_Modified.Main_MCD(X=xAll,Y=Y, dictionaryZones=dictionaryZones,
-                                                                                            sampleSizes=sampleSizes, n=n, h=h)
+                                                                                            sampleSizes=sampleSizes, Z=Z, n=n, h=h)
             xMatrixMCD_Modified = self.__filingMatrixX(xall=xVectorMCD_Modified, n=h)
             tettaMCD_Modified_ = LSObject.LSMatrix(xMatrixMCD_Modified, yVectorMCD_Modified)
             MCD_Modified_saver_.append(tettaMCD_Modified_.copy())
