@@ -133,8 +133,9 @@ class StandForHGOutliers:
     def __FunctionForTextOutput(self, params, mode):
         n = params["n"]
         tetta = params["tetta"]
-        outlier = params["outlier"]
+        h = params["hi"]
         nCycle = params["nCycle"]
+
 
         outSaver, nSaver = [], []
         iLS, iMCD, iMCD_Modified, iCauchy, iHuber = [], [], [], [], []
@@ -156,7 +157,7 @@ class StandForHGOutliers:
 
         for i in range(nCycle):
             Y, xAll, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
-            h = int(n / 4)
+
 
             xVectorMCD_, yVectorMCD_ = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
             xMatrixMCD_ = self.__filingMatrixX(xall=xVectorMCD_, n=h)
@@ -189,10 +190,10 @@ class StandForHGOutliers:
 
 
         zones = params["emissionZones"]
-        message = f"{mode}_n = {n}_nCycle = {nCycle}_outlier = {outlier}_params = {zones[0]}_{zones[1]}_{zones[2]}_{zones[3]}"
+        message = f"{mode}_n = {n}_nCycle = {nCycle}_h = {h}_params = {zones[0]}_{zones[1]}_{zones[2]}_{zones[3]}"
 
         self.__CreateFileForIndexes(
-            name=f"{mode}_n_{n}_nCycle_{nCycle}_outlier_{outlier}_params_{zones[0]}_{zones[1]}_{zones[2]}_{zones[3]}",
+            name=f"{mode}_n_{n}_nCycle_{nCycle}_h_{h}_params_{zones[0]}_{zones[1]}_{zones[2]}_{zones[3]}",
             path=f"dataForIndex/{mode}/",
             LS=iLS, MCD=iMCD, MCD_Modified=iMCD_Modified, Huber=iHuber, Cauchy=iCauchy, message=message)
 

@@ -103,7 +103,7 @@ class MCD_Modified:
         for i in range(h):
             Hnew.append(dold[i][1])
         return Hnew
-    def __CStepFor500(self, X, Y, T1, S1, n, h):
+    def __CStepFor500(self, X, Y, Z, sampleSizesH, T1, S1, n, h):
         T = []
         S = []
         Hnew = []
@@ -111,9 +111,9 @@ class MCD_Modified:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            dold = self.__Di(X, Y, T[i], S[i], n)
+            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues(dold, h)
+            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
             Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
@@ -147,7 +147,7 @@ class MCD_Modified:
             if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0):
                 break
         # return S3
-        return S[i], T[i]
+        return S[i], T[i], Hnew
 
     def __diTransform(self, di):
         saver = []
@@ -198,7 +198,7 @@ class MCD_Modified:
                 continue
             else:
                 i += 1
-            Snew, Tnew = self.__CStepFor500(X, Y, T1, S1, n, h)
+            Snew, Tnew = self.__CStepFor500(X, Y, Z, sampleSizesH, T1, S1, n, h)
             HiSaver500.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
 
         # diSaver500 содержит [детерминант S, [di, положение элемента в списке исходных иксов]]
@@ -216,16 +216,17 @@ class MCD_Modified:
         for i in range(10):
             S3 = HiSaver10[i][1]
             T3 = HiSaver10[i][2]
-            Snew, Tnew = self.__CStepFor10(X, Y, Z, sampleSizesH, T3, S3, n, h)
+            Snew, Tnew, Hnew = self.__CStepFor10(X, Y, Z, sampleSizesH, T3, S3, n, h)
             T_H_EndVector.append([np.linalg.det(Snew), Snew.copy(), Tnew.copy()])
 
         T_H_EndVector.sort(key=KeyFuncion)
 
         Snew = T_H_EndVector[0][1]
         Tnew = T_H_EndVector[0][2]
+
         diEnd = self.__Di_Modified(X, Y, Z, Tnew, Snew, n)
         diEnd.sort(key=KeyFuncion)
-        HEnd = self.__ChooseHValues(diEnd, h)
+        HEnd = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
 
         X_ = self.__ReturnListX(X, HEnd, h)
         Y_ = np.array(self.__ReturnListY(Y, HEnd, h))
