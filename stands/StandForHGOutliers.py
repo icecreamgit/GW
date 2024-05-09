@@ -156,7 +156,7 @@ class StandForHGOutliers:
         MCD_Modified_saver_ = []
 
         for i in range(nCycle):
-            Y, xAll, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
+            Y, xAll, xAll_h, y_res_h, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
 
 
             xVectorMCD_, yVectorMCD_ = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
@@ -170,14 +170,14 @@ class StandForHGOutliers:
             tettaMCD_Modified_ = LSObject.LSMatrix(xMatrixMCD_Modified, yVectorMCD_Modified)
             MCD_Modified_saver_.append(tettaMCD_Modified_.copy())
 
-            X = self.__filingMatrixX(xAll, n)
-            tettaLS = LSObject.LSMatrix(X, Y)
+            X = self.__filingMatrixX(xAll_h, h)
+            tettaLS = LSObject.LSMatrix(X, y_res_h)
             LSsaver.append(tettaLS.copy())
 
-            tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, Y, n)
+            tettaMEstHuber = MObject.MainEstimators(tettaLS, "Huber", X, y_res_h, h)
             Hubersaver.append(tettaMEstHuber.copy())
 
-            tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, Y, n)
+            tettaMEstCauchy = MObject.MainEstimators(tettaLS, "Cauchy", X, y_res_h, h)
             Cauchysaver.append(tettaMEstCauchy.copy())
             print(f" i == {i}\n")
 
