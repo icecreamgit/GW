@@ -175,7 +175,7 @@ class MCD_Modified:
             if i >= 4:
                 i = 0
         return sampleSizes
-    def Main_MCD(self, X, Y, dictionaryZones, sampleSizes, Z, n, h):
+    def Main_MCD(self, X, Y, dictionaryZones, sampleSizes, Z, n, h, numberZones):
         HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]
         cStepNumber, lowestNumber = 500, 10
 
@@ -183,7 +183,7 @@ class MCD_Modified:
         i = 0
         sampleSizeH = []
         if n != h:
-            sampleSizesH = self.__calibrateInputLenght(h, 4)
+            sampleSizesH = self.__calibrateInputLenght(h, numberZones)
         else:
             sampleSizesH = sampleSizes
 

@@ -65,7 +65,9 @@ class StandForHGOutliers:
     def __CreateFileForIndexes(self, name, path, LS, MCD, MCD_Modified, Huber, Cauchy, message):
         with open(f"{path}{name}.txt", "w") as file:
             file.write(message)
-            file.write(f"\nLS: {LS}\nMCD: {MCD}\nMCD_Modified: {MCD_Modified}\nHuber: {Huber}\nCauchy: {Cauchy}")
+            file.write(f"\nLS: {LS}\nMCD: {MCD}\nMCD_Modified: {MCD_Modified}\nHuber: {Huber}\nCauchy: {Cauchy}\n\n"
+                       f"{round(LS[0], 5)}\t{round(MCD[0], 5)}\t{round(MCD_Modified[0], 5)}\t"
+                       f"{round(Huber[0], 5)}\t{round(Cauchy[0], 5)}")
 
     # Стандартная метод для расчёта показателя точности с выбросами
     # Плюс, отрисовывается график для методов MCD, МНК, М-оценок
@@ -135,6 +137,7 @@ class StandForHGOutliers:
         tetta = params["tetta"]
         h = params["hi"]
         nCycle = params["nCycle"]
+        numberZones = params["numberZones"]
 
 
         outSaver, nSaver = [], []
@@ -165,7 +168,8 @@ class StandForHGOutliers:
             MCDsaver_.append(tettaMCD_.copy())
 
             xVectorMCD_Modified, yVectorMCD_Modified = mcdMethod_Modified.Main_MCD(X=xAll,Y=Y, dictionaryZones=dictionaryZones,
-                                                                                            sampleSizes=sampleSizes, Z=Z, n=n, h=h)
+                                                                                   sampleSizes=sampleSizes, Z=Z, n=n, h=h,
+                                                                                   numberZones=numberZones)
             xMatrixMCD_Modified = self.__filingMatrixX(xall=xVectorMCD_Modified, n=h)
             tettaMCD_Modified_ = LSObject.LSMatrix(xMatrixMCD_Modified, yVectorMCD_Modified)
             MCD_Modified_saver_.append(tettaMCD_Modified_.copy())
