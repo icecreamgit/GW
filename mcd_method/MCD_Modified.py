@@ -134,9 +134,9 @@ class MCD_Modified:
         S.append(S3)
         i = 0
         while 1:
-            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            dold = self.__Di(X, Y, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+            Hnew = self.__ChooseHValues(dold, h)
             Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
