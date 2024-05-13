@@ -36,12 +36,12 @@ def main():
     # mode = "normal_Mod"
 
     # For II model (normal + cauchy) [0.01, 0.1, 1, 1], [0.1, 0.25, 1, 1], [0.25, 0.5, 1, 1]
-    emissionZones = [[0.01, 0.05, 1, 1], [0.01, 0.25, 1, 1], [0.1, 0.5, 1, 1]]
-    mode = "cauchy_Mod"
+    # emissionZones = [[0.01, 0.05, 1, 1], [0.01, 0.25, 1, 1], [0.1, 0.5, 1, 1]]
+    # mode = "cauchy_Mod"
 
     # For III model (normal + exp) [0.01, 0.1, 0.5, 1], [0.1, 0.25, 1, 2], [0.01, 0.1, 2, 5]
-    # emissionZones = [[0.01, 0.05, 5., 7.], [0.01, 0.1, 0.5, 1]]
-    # mode = "exponent_Mod"
+    emissionZones = [[0.01, 0.05, 5., 7.], [0.01, 0.1, 0.5, 1]]
+    mode = "exponent_Mod"
 
 
     standForFourMethods = StandForFourMethods.StandForFourMethods()
