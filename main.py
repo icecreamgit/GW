@@ -32,12 +32,12 @@ def main():
 
     # Only: "normal" "cauchy" "exponent" "normal_Mod" "cauchy_Mod" "exponent_Mod"
     # For I model (only normal) [[0.01, 0.1, 1, 2], [0.1, 0.25, 2, 3], [0.01, 0.1, 3, 5], [0.1, 0.5, 5., 7.]]
-    # emissionZones = [[0.1, 0.25, 2, 3], [0.01, 0.1, 3, 5], [0.01, 0.5, 5., 7.]]
-    # mode = "normal_Mod"
+    emissionZones = [[0.01, 0.5, 5., 7.]]
+    mode = "normal_Mod"
 
     # For II model (normal + cauchy) [0.01, 0.1, 1, 1], [0.1, 0.25, 1, 1], [0.25, 0.5, 1, 1]
-    emissionZones = [[0.01, 0.01, 1, 1]]
-    mode = "cauchy_Mod"
+    # emissionZones = [[0.01, 0.01, 1, 1]]
+    # mode = "cauchy_Mod"
 
     # For III model (normal + exp) [0.01, 0.1, 0.5, 1], [0.1, 0.25, 1, 2], [0.01, 0.1, 2, 5]
     # emissionZones = [[0.01, 0.05, 5., 7.], [0.01, 0.1, 0.5, 1]]
