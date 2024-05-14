@@ -134,9 +134,9 @@ class MCD_Modified:
         S.append(S3)
         i = 0
         while 1:
-            dold = self.__Di(X, Y, T[i], S[i], n)
+            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues(dold, h)
+            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
             Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
@@ -229,6 +229,6 @@ class MCD_Modified:
         HEnd = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
 
         X_ = self.__ReturnListX(X, HEnd, h)
-        Y_ = np.array(self.__ReturnListY(Y, HEnd, h))
-        return X_, Y_
+        diVector = self.__diTransform(diEnd)
+        return X_, diVector
 
