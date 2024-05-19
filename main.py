@@ -24,9 +24,8 @@ def main():
     outlier = 0.
     nCycle = 50
     numberZones = 4
-    typeOfDistanse = "mcd_modified"
     # h = [252, 300, 350, 400, 450]
-    h = 400
+    h = 252
     # grafic - отображение зависимости кси от выбросов
     # oneOutput - вывод в консоль значений показателей точности оценивания
     # для LS, MCD, M-estimators of Cauchy and Huber
@@ -38,12 +37,12 @@ def main():
     # mode = "normal_Mod"
 
     # For II model (normal + cauchy) [0.01, 0.1, 1, 1], [0.1, 0.25, 1, 1], [0.25, 0.5, 1, 1]
-    # emissionZones = [[0.01, 0.01, 1, 1]]
-    # mode = "cauchy_Mod"
+    emissionZones = [[0.01, 0.01, 1, 1]]
+    mode = "cauchy_Mod"
 
     # For III model (normal + exp) [0.01, 0.1, 0.5, 1], [0.1, 0.25, 1, 2], [0.01, 0.1, 2, 5]
-    emissionZones = [[0.01, 0.05, 5., 7.]]
-    mode = "exponent_Mod"
+    # emissionZones = [[0.01, 0.1, 0.5, 1]]
+    # mode = "exponent_Mod"
 
 
     standForFourMethods = StandForFourMethods.StandForFourMethods()
@@ -53,7 +52,7 @@ def main():
               "emissionZones": emissionZones, "nCycle": nCycle, "h": h,
               "numberZones": numberZones}
     paramsForDistanses = {"n": n, "tetta": tetta, "outlier": outlier, "limit": limit,
-              "emissionZones": emissionZones[0], "hi": h, "type": typeOfDistanse,
+              "emissionZones": emissionZones[0], "hi": h,
                           "numberZones": numberZones}
 
     # WriteTextDistances(params, mode, modeForGrafic)

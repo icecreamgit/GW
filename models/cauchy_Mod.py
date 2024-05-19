@@ -97,26 +97,26 @@ class cauchyModel:
                 # I zone
                 y_res.append(self.__calculateYwithoutError(tetta, x1, x2) +
                              np.random.normal(loc=0, scale=np.sqrt(emissionZones[0])))
-                Z.append([x1, x2, y_res[i], 1])
+                Z.append([x1, x2, y_res[i], 1, i])
                 listFirstZone.append(i)
             elif x1 <= 0.5 and x2 <= 0.5:
                 # II zone
                 y_res.append(self.__calculateYwithoutError(tetta, x1, x2) +
                              np.random.normal(loc=0, scale=np.sqrt(emissionZones[1])))
-                Z.append([x1, x2, y_res[i], 2])
+                Z.append([x1, x2, y_res[i], 2, i])
                 listSecondZone.append(i)
             elif x1 > 0.5 and x2 > 0.5:
                 # III zone
                 y_res.append(self.__calculateYwithoutError(tetta, x1, x2) +
                              np.random.standard_cauchy(1)[0])
-                Z.append([x1, x2, y_res[i], 3])
+                Z.append([x1, x2, y_res[i], 3, i])
                 listThirdZone.append(i)
 
             elif x1 > 0.5 and x2 < 0.5:
             # IV zone
                 y_res.append(self.__calculateYwithoutError(tetta, x1, x2) +
                              np.random.standard_cauchy(1)[0])
-                Z.append([x1, x2, y_res[i], 4])
+                Z.append([x1, x2, y_res[i], 4, i])
                 listForthZone.append(i)
         dictionaryZones = {"1": listFirstZone, "2": listSecondZone, "3": listThirdZone, "4": listForthZone}
 

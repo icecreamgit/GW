@@ -30,6 +30,11 @@ class MCD_Modified:
         H1 = np.random.choice(listOfIndexes, size=m, replace=False)
         return H1
 
+    def __H1Generate_mcd(self, h, n):
+        vector = [i for i in range(n)]
+        H1 = np.random.choice(vector, size=h, replace=False)
+        return H1
+
     def __TS_Count(self, X, Y, H, h):
         x1 = []
         x2 = []
@@ -51,7 +56,27 @@ class MCD_Modified:
 
         T = np.array([T1mean, T2mean, T3mean])
         return T, S
+    def __TS_Modified(self, Z, H, h):
+        x1 = []
+        x2 = []
+        y = []
+        # Создание Х1 и Х2, принадлежащие H вектору
+        for i in range(h):
+            trueIndex = H[i]
+            x1.append(Z[trueIndex][0])
+            x2.append(Z[trueIndex][1])
+            y.append(Z[trueIndex][2])
 
+        x = np.stack((x1, x2, y))
+
+        T1mean = np.mean(x[0])
+        T2mean = np.mean(x[1])
+        T3mean = np.mean(y)
+
+        S = np.cov(x, bias=True)
+
+        T = np.array([T1mean, T2mean, T3mean])
+        return T, S
     def __Di_Modified(self, X, Y, Z, T, S, n):
         B, di = [], []
         indexesZones = []
@@ -73,18 +98,22 @@ class MCD_Modified:
             if (dold[i][2] == 1 and indexFirstZone < sampleSizesH[0]):
                 Hnew.append(dold[i][1])
                 indexFirstZone += 1
+                continue
 
             if (dold[i][2] == 2 and indexSecondZone < sampleSizesH[1]):
                 Hnew.append(dold[i][1])
                 indexSecondZone += 1
+                continue
 
             if (dold[i][2] == 3 and indexThirdZone < sampleSizesH[2]):
                 Hnew.append(dold[i][1])
                 indexThirdZone += 1
+                continue
 
             if (dold[i][2] == 4 and indexForthZone < sampleSizesH[3]):
                 Hnew.append(dold[i][1])
                 indexForthZone += 1
+                continue
         return Hnew
     def __Di(self, X, Y, T, S, n):
         B, di = [], []
@@ -111,9 +140,10 @@ class MCD_Modified:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            dold = self.__Di(X, Y, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+            Hnew = self.__ChooseHValues(dold, h)
+
             Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
@@ -137,7 +167,7 @@ class MCD_Modified:
             dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
-            Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
+            Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
 
@@ -155,16 +185,6 @@ class MCD_Modified:
             saver.append(element[0])
         return saver
 
-    def Archiver(self, dictionary, index):
-        struct = dictionary[index]
-        x1, x2, X, Y = [], [], [], []
-
-        for line in struct:
-            x1.append(line[1])
-            x2.append(line[2])
-            Y.append([line[0]])
-        X.append([x1, x2])
-        return X, Y
     def __calibrateInputLenght(self, n, numberZones):
         h = int(n / numberZones)
         sampleSizes = [h, h, h, h]
@@ -188,6 +208,7 @@ class MCD_Modified:
             sampleSizesH = sampleSizes
 
         while i < cStepNumber:
+            # H1 = self.__H1Generate_mcd(h, n)
             H1 = list(chain(self.__H1Generate(dictionaryZones["1"], sampleSizesH[0]),
                             self.__H1Generate(dictionaryZones["2"], sampleSizesH[1]),
                             self.__H1Generate(dictionaryZones["3"], sampleSizesH[2]),
@@ -226,9 +247,15 @@ class MCD_Modified:
 
         diEnd = self.__Di_Modified(X, Y, Z, Tnew, Snew, n)
         diEnd.sort(key=KeyFuncion)
-        HEnd = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
 
-        X_ = self.__ReturnListX(X, HEnd, h)
-        diVector = self.__diTransform(diEnd)
-        return X_, diVector
+        HEnd_n = self.__ChooseHValues(diEnd, n)
+        HEnd_h = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
+
+        X_n = self.__ReturnListX(X, HEnd_n, n)
+        X_h = self.__ReturnListX(X, HEnd_h, h)
+
+        Y_n = self.__ReturnListY(Y, HEnd_n, n)
+
+        di_n = self.__diTransform(diEnd)
+        return X_n, X_h, Y_n, di_n
 

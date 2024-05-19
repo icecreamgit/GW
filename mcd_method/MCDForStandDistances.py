@@ -164,9 +164,14 @@ class MCDForStandDistances:
         Tnew = T_H_EndVector[0][2]
         diEnd = self.__Di(X, Y, Tnew, Snew, n)
         diEnd.sort(key=KeyFuncion)
-        HEnd = self.__ChooseHValues(diEnd, h)
 
-        diVector = self.__diTransform(diEnd)
+        HEnd_n = self.__ChooseHValues(diEnd, n)
+        HEnd_h = self.__ChooseHValues(diEnd, h)
 
-        X_ = self.__ReturnListX(X, HEnd, h)
-        return X_, diVector
+        X_n = self.__ReturnListX(X, HEnd_n, n)
+        X_h = self.__ReturnListX(X, HEnd_h, h)
+
+        Y_n = self.__ReturnListY(Y, HEnd_n, n)
+
+        di_n = self.__diTransform(diEnd)
+        return X_n, X_h, Y_n, di_n
