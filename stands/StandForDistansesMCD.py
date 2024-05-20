@@ -37,7 +37,7 @@ class StandForDistansesMCD:
         plt.xlim()
         plt.ylim(lims[0], lims[1])
         plt.grid()  # включение отображение сетки
-        plt.scatter(xAll, di, color=colors, marker='3')  # построение графика
+        plt.scatter(xAll, di, color=colors, linewidth=1.3, edgecolors='black')  # построение графика
         plt.savefig(path + fileName)
         plt.show()
 
@@ -50,7 +50,7 @@ class StandForDistansesMCD:
         plt.xlim()
         plt.ylim(lims[0], lims[1])
         plt.grid()  # включение отображение сетки
-        plt.scatter(xAll, y, color=colors, marker='3')  # построение графика
+        plt.scatter(xAll, y, color=colors, linewidth=1.3, edgecolors='black')  # построение графика
         plt.savefig(path + fileName)
         plt.show()
 

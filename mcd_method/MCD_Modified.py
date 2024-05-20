@@ -10,23 +10,29 @@ def KeyFuncion(item):
 
 class MCD_Modified:
 
-    def __ReturnListX(self, X, Hnew, h):
+    def __ReturnListX_Mod(self, Z, Hnew, h):
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
         for i in range(h):
             j = Hnew[i]
-            newList[0].append(X[0][j])
-            newList[1].append(X[1][j])
+            newList[0].append(Z[j][0])
+            newList[1].append(Z[j][1])
         return newList
 
-    def __ReturnListY(self, Y, Hnew, h):
+    def __ReturnListY_Mod(self, Z, Hnew, h):
         newList = []
         for i in range(h):
             index = Hnew[i]
-            newList.append(Y[index])
-        return newList
+            newList.append(Z[index][2])
+        return np.array(newList).reshape(h, 1)
 
-    def __H1Generate(self, listOfIndexes, m):
+
+    def __H1Generate(self, h, n):
+        vector = [i for i in range(n)]
+        H1 = np.random.choice(vector, size=h, replace=False)
+        return H1
+
+    def __H1Generate_Mod(self, listOfIndexes, m):
         H1 = np.random.choice(listOfIndexes, size=m, replace=False)
         return H1
 
@@ -40,6 +46,28 @@ class MCD_Modified:
             x1.append(X[0][trueIndex])
             x2.append(X[1][trueIndex])
             y.append(Y[trueIndex][0])
+
+        x = np.stack((x1, x2, y))
+
+        T1mean = np.mean(x[0])
+        T2mean = np.mean(x[1])
+        T3mean = np.mean(y)
+
+        S = np.cov(x, bias=True)
+
+        T = np.array([T1mean, T2mean, T3mean])
+        return T, S
+
+    def __TS_Modified(self, Z, H, h):
+        x1 = []
+        x2 = []
+        y = []
+        # Создание Х1 и Х2, принадлежащие H вектору
+        for i in range(h):
+            trueIndex = H[i]
+            x1.append(Z[trueIndex][0])
+            x2.append(Z[trueIndex][1])
+            y.append(Z[trueIndex][2])
 
         x = np.stack((x1, x2, y))
 
@@ -73,18 +101,22 @@ class MCD_Modified:
             if (dold[i][2] == 1 and indexFirstZone < sampleSizesH[0]):
                 Hnew.append(dold[i][1])
                 indexFirstZone += 1
+                continue
 
             if (dold[i][2] == 2 and indexSecondZone < sampleSizesH[1]):
                 Hnew.append(dold[i][1])
                 indexSecondZone += 1
+                continue
 
             if (dold[i][2] == 3 and indexThirdZone < sampleSizesH[2]):
                 Hnew.append(dold[i][1])
                 indexThirdZone += 1
+                continue
 
             if (dold[i][2] == 4 and indexForthZone < sampleSizesH[3]):
                 Hnew.append(dold[i][1])
                 indexForthZone += 1
+                continue
         return Hnew
     def __Di(self, X, Y, T, S, n):
         B, di = [], []
@@ -111,9 +143,14 @@ class MCD_Modified:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            dold = self.__Di(X, Y, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+            Hnew = self.__ChooseHValues(dold, h)
+
+            # dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            # dold.sort(key=KeyFuncion)
+            # Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+
             Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
@@ -134,10 +171,15 @@ class MCD_Modified:
         S.append(S3)
         i = 0
         while 1:
-            dold = self.__Di(X, Y, T[i], S[i], n)
+            # dold = self.__Di(X, Y, T[i], S[i], n)
+            # dold.sort(key=KeyFuncion)
+            # Hnew = self.__ChooseHValues(dold, h)
+
+            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues(dold, h)
-            Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
+            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+
+            Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
 
@@ -188,10 +230,11 @@ class MCD_Modified:
             sampleSizesH = sampleSizes
 
         while i < cStepNumber:
-            H1 = list(chain(self.__H1Generate(dictionaryZones["1"], sampleSizesH[0]),
-                            self.__H1Generate(dictionaryZones["2"], sampleSizesH[1]),
-                            self.__H1Generate(dictionaryZones["3"], sampleSizesH[2]),
-                            self.__H1Generate(dictionaryZones["4"], sampleSizesH[3])))
+            H1 = self.__H1Generate(h, n)
+            # H1 = list(chain(self.__H1Generate_Mod(dictionaryZones["1"], sampleSizesH[0]),
+            #                 self.__H1Generate_Mod(dictionaryZones["2"], sampleSizesH[1]),
+            #                 self.__H1Generate_Mod(dictionaryZones["3"], sampleSizesH[2]),
+            #                 self.__H1Generate_Mod(dictionaryZones["4"], sampleSizesH[3])))
 
             T1, S1 = self.__TS_Count(X, Y, H1, h)
             if math.isclose(np.linalg.det(S1), 0.0):
@@ -228,7 +271,7 @@ class MCD_Modified:
         diEnd.sort(key=KeyFuncion)
         HEnd = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
 
-        X_ = self.__ReturnListX(X, HEnd, h)
-        Y_ = np.array(self.__ReturnListY(Y, HEnd, h))
+        X_ = self.__ReturnListX_Mod(Z, HEnd, h)
+        Y_ = self.__ReturnListY_Mod(Z, HEnd, h)
         return X_, Y_
 

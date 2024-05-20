@@ -10,20 +10,20 @@ def KeyFuncion(item):
 
 class MCD_Modified:
 
-    def __ReturnListX(self, X, Hnew, h):
+    def __ReturnListX_Mod(self, Z, Hnew, h):
         # Превращаю вектор расстояний di обратно в матрицу, чтобы засунуть в С-шаг
         newList = [[], []]
         for i in range(h):
             j = Hnew[i]
-            newList[0].append(X[0][j])
-            newList[1].append(X[1][j])
+            newList[0].append(Z[j][0])
+            newList[1].append(Z[j][1])
         return newList
 
-    def __ReturnListY(self, Y, Hnew, h):
+    def __ReturnListY_Mod(self, Z, Hnew, h):
         newList = []
         for i in range(h):
             index = Hnew[i]
-            newList.append(Y[index])
+            newList.append(Z[index][2])
         return newList
 
     def __H1Generate(self, listOfIndexes, m):
@@ -140,6 +140,11 @@ class MCD_Modified:
         T.append(T1)
         S.append(S1)
         for i in range(2):
+            # dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            # dold.sort(key=KeyFuncion)
+            # Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+            #
+            # Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
             dold = self.__Di(X, Y, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues(dold, h)
@@ -164,9 +169,15 @@ class MCD_Modified:
         S.append(S3)
         i = 0
         while 1:
+            # dold = self.__Di(X, Y, T[i], S[i], n)
+            # dold.sort(key=KeyFuncion)
+            # Hnew = self.__ChooseHValues(dold, h)
+            #
+            # Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
             dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+
             Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
@@ -208,13 +219,13 @@ class MCD_Modified:
             sampleSizesH = sampleSizes
 
         while i < cStepNumber:
-            # H1 = self.__H1Generate_mcd(h, n)
-            H1 = list(chain(self.__H1Generate(dictionaryZones["1"], sampleSizesH[0]),
-                            self.__H1Generate(dictionaryZones["2"], sampleSizesH[1]),
-                            self.__H1Generate(dictionaryZones["3"], sampleSizesH[2]),
-                            self.__H1Generate(dictionaryZones["4"], sampleSizesH[3])))
+            H1 = self.__H1Generate_mcd(h, n)
+            # H1 = list(chain(self.__H1Generate(dictionaryZones["1"], sampleSizesH[0]),
+            #                 self.__H1Generate(dictionaryZones["2"], sampleSizesH[1]),
+            #                 self.__H1Generate(dictionaryZones["3"], sampleSizesH[2]),
+            #                 self.__H1Generate(dictionaryZones["4"], sampleSizesH[3])))
 
-            T1, S1 = self.__TS_Count(X, Y, H1, h)
+            T1, S1 = self.__TS_Modified(Z, H1, h)
             if math.isclose(np.linalg.det(S1), 0.0):
                 continue
             else:
@@ -251,10 +262,10 @@ class MCD_Modified:
         HEnd_n = self.__ChooseHValues(diEnd, n)
         HEnd_h = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
 
-        X_n = self.__ReturnListX(X, HEnd_n, n)
-        X_h = self.__ReturnListX(X, HEnd_h, h)
+        X_n = self.__ReturnListX_Mod(Z, HEnd_n, n)
+        X_h = self.__ReturnListX_Mod(Z, HEnd_h, h)
 
-        Y_n = self.__ReturnListY(Y, HEnd_n, n)
+        Y_n = self.__ReturnListY_Mod(Z, HEnd_n, n)
 
         di_n = self.__diTransform(diEnd)
         return X_n, X_h, Y_n, di_n

@@ -22,7 +22,7 @@ def main():
     n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
     limit = 1.0
     outlier = 0.
-    nCycle = 50
+    nCycle = 10
     numberZones = 4
     # h = [252, 300, 350, 400, 450]
     h = 252
@@ -37,7 +37,7 @@ def main():
     # mode = "normal_Mod"
 
     # For II model (normal + cauchy) [0.01, 0.1, 1, 1], [0.1, 0.25, 1, 1], [0.25, 0.5, 1, 1]
-    emissionZones = [[0.01, 0.01, 1, 1]]
+    emissionZones = [[0.1, 0.5, 1, 1]]
     mode = "cauchy_Mod"
 
     # For III model (normal + exp) [0.01, 0.1, 0.5, 1], [0.1, 0.25, 1, 2], [0.01, 0.1, 2, 5]
