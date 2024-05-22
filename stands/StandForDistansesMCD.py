@@ -70,8 +70,8 @@ class StandForDistansesMCD:
         mcdMethod_ = MCD_.MCDForStandDistances()
         mcdMethod_Modified = MCD_Modified.MCD_Modified()
 
-        lims1 = [-1, 100]
-        lims2 = [-6, 15]
+        lims1 = [-1, 15]
+        lims2 = [-3, 10]
 
         Y, xAll, xAll_h, y_res_h, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
 
@@ -93,8 +93,8 @@ class StandForDistansesMCD:
                                    xAll=X_n[1], x=X_h[1], y=Y_n,
                                    xlabel="x2", ylabel="Y", lims=lims2)
 
-        lims1 = [-1, 25]
-        lims2 = [-6, 15]
+        lims1 = [-1, 15]
+        lims2 = [-6, 10]
         X_n, X_h, Y_n, di_n = mcdMethod_Modified.Main_MCD(X=xAll,Y=Y, dictionaryZones=dictionaryZones,
                                                                        sampleSizes=sampleSizes, Z=Z, n=n, h=h,
                                                                        numberZones=numberZones)

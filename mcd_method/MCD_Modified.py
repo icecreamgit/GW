@@ -143,15 +143,15 @@ class MCD_Modified:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            dold = self.__Di(X, Y, T[i], S[i], n)
-            dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues(dold, h)
-
-            # dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            # dold = self.__Di(X, Y, T[i], S[i], n)
             # dold.sort(key=KeyFuncion)
-            # Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+            # Hnew = self.__ChooseHValues(dold, h)
 
-            Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
+            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            dold.sort(key=KeyFuncion)
+            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+
+            Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
             T.append(Tnew)
             S.append(Snew)
 
@@ -197,16 +197,6 @@ class MCD_Modified:
             saver.append(element[0])
         return saver
 
-    def Archiver(self, dictionary, index):
-        struct = dictionary[index]
-        x1, x2, X, Y = [], [], [], []
-
-        for line in struct:
-            x1.append(line[1])
-            x2.append(line[2])
-            Y.append([line[0]])
-        X.append([x1, x2])
-        return X, Y
     def __calibrateInputLenght(self, n, numberZones):
         h = int(n / numberZones)
         sampleSizes = [h, h, h, h]
@@ -230,13 +220,13 @@ class MCD_Modified:
             sampleSizesH = sampleSizes
 
         while i < cStepNumber:
-            H1 = self.__H1Generate(h, n)
-            # H1 = list(chain(self.__H1Generate_Mod(dictionaryZones["1"], sampleSizesH[0]),
-            #                 self.__H1Generate_Mod(dictionaryZones["2"], sampleSizesH[1]),
-            #                 self.__H1Generate_Mod(dictionaryZones["3"], sampleSizesH[2]),
-            #                 self.__H1Generate_Mod(dictionaryZones["4"], sampleSizesH[3])))
+            # H1 = self.__H1Generate(h, n)
+            H1 = list(chain(self.__H1Generate_Mod(dictionaryZones["1"], sampleSizesH[0]),
+                            self.__H1Generate_Mod(dictionaryZones["2"], sampleSizesH[1]),
+                            self.__H1Generate_Mod(dictionaryZones["3"], sampleSizesH[2]),
+                            self.__H1Generate_Mod(dictionaryZones["4"], sampleSizesH[3])))
 
-            T1, S1 = self.__TS_Count(X, Y, H1, h)
+            T1, S1 = self.__TS_Modified(Z, H1, h)
             if math.isclose(np.linalg.det(S1), 0.0):
                 continue
             else:
@@ -269,6 +259,7 @@ class MCD_Modified:
 
         diEnd = self.__Di_Modified(X, Y, Z, Tnew, Snew, n)
         diEnd.sort(key=KeyFuncion)
+        # HEnd = self.__ChooseHValues(diEnd, h)
         HEnd = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
 
         X_ = self.__ReturnListX_Mod(Z, HEnd, h)
