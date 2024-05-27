@@ -1,6 +1,7 @@
 import numpy as np
 import mcd_method.MCD_Three_variables as MCD_Three_variables
 import mcd_method.MCD_Modified as MCD_Modified
+import mcd_method.MCD_Mod_ForN as MCD_ModForN
 
 import LS
 import M_Estimators as MEst
@@ -37,10 +38,54 @@ class StandForHGOutliers:
             summa[i] /= n
         return summa
 
+    def __CompareMCDsGrafics(self, fileName, path, outSaverX, paramMethodsY, about, xlabel, ylabel):
+        iFirst = paramMethodsY["iFirst"]
+        iSecond = paramMethodsY["iSecond"]
+
+        plt.plot()
+        plt.xlabel(xlabel)  # ось абсцисс
+        plt.ylabel(ylabel)  # ось ординат
+        plt.grid()  # включение отображение сетки
+
+        plt.plot(
+            outSaverX, iFirst,
+            outSaverX, iSecond,
+        )  # построение графика
+        plt.legend((
+            about[0],
+            about[1],
+        ))
+        plt.savefig(path + fileName)
+        plt.show()
+    def __CreateThreeDistrGrafic(self, fileName, path, outSaverX, paramMethodsY, about, xlabel, ylabel):
+
+        iFirst = paramMethodsY["iFirst"]
+        iSecond = paramMethodsY["iSecond"]
+        iThird = paramMethodsY["iThird"]
+
+        plt.plot()
+        plt.xlabel(xlabel)  # ось абсцисс
+        plt.ylabel(ylabel)  # ось ординат
+        plt.grid()  # включение отображение сетки
+
+        plt.plot(
+            outSaverX, iFirst,
+            outSaverX, iSecond,
+            outSaverX, iThird,
+        )  # построение графика
+        plt.legend((
+            about[0],
+            about[1],
+            about[2],
+        ))
+        plt.savefig(path + fileName)
+        plt.show()
+
     def __CreateGrafic(self, fileName, path, outSaverX, paramMethodsY, about, xlabel, ylabel):
 
         iLS = paramMethodsY["iLS"]
         iMCD = paramMethodsY["iMCD"]
+        iMCD_Mod = paramMethodsY["iMCD_Mod"]
         iHuber = paramMethodsY["iHuber"]
         iCauchy = paramMethodsY["iCauchy"]
 
@@ -48,9 +93,11 @@ class StandForHGOutliers:
         plt.xlabel(xlabel)  # ось абсцисс
         plt.ylabel(ylabel)  # ось ординат
         plt.grid()  # включение отображение сетки
+
         plt.plot(
             outSaverX, iLS,
             outSaverX, iMCD,
+            outSaverX, iMCD_Mod,
             outSaverX, iHuber,
             outSaverX, iCauchy
         )  # построение графика
@@ -58,7 +105,8 @@ class StandForHGOutliers:
             about[0],
             about[1],
             about[2],
-            about[3]
+            about[3],
+            about[4]
         ))
         plt.savefig(path + fileName)
         plt.show()
@@ -73,12 +121,14 @@ class StandForHGOutliers:
     # Плюс, отрисовывается график для методов MCD, МНК, М-оценок
     def __FunctionForGraficWithOutliers(self, params, mode):
         n = params["n"]
+        itteratorOitlier = params["itteratorOutlier"]
+        numberZones = params["numberZones"]
         tetta = params["tetta"]
         outlier = params["outlier"]
         nCycle = params["nCycle"]
 
         outSaver, nSaver = [], []
-        iLS, iMCD, iCauchy, iHuber = [], [], [], []
+        iLS, iMCD, iMCD_Mod, iCauchy, iHuber = [], [], [], [], []
 
         factoryObject = FactoryForModels.FactoryForModels()
         modelForData = factoryObject.main_Factory(mode)
@@ -86,22 +136,35 @@ class StandForHGOutliers:
         LSObject = LS.LS()
         MObject = MEst.M_Estimators()
         mcdMethod_three_var = MCD_Three_variables.MCD()
+        mcd_For_N = MCD_ModForN.MCD_Modified()
+
 
         while outlier <= 0.25:
             LSsaver = []
             MCDsaver_ = []
             Hubersaver = []
             Cauchysaver = []
+            MCD_Mod_saver_ = []
 
             params["outlier"] = outlier
             for i in range(nCycle):
-                Y, xAll = modelForData.Main_Model(params=params)
+                Y, xAll, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
                 h = int(n * (1 - outlier))
 
                 xVectorMCD_, yVectorMCD_ = mcdMethod_three_var.FindRelativeDistances(X=xAll, Y=Y, n=n, h=h)
                 xMatrixMCD_ = self.__filingMatrixX(xall=xVectorMCD_, n=h)
                 tettaMCD_ = LSObject.LSMatrix(xMatrixMCD_, yVectorMCD_)
                 MCDsaver_.append(tettaMCD_.copy())
+
+                xVectorMCD_Modified, yVectorMCD_Modified = mcd_For_N.Main_MCD(X=xAll, Y=Y,
+                                                                              outlier=outlier,
+                                                                              dictionaryZones=dictionaryZones,
+                                                                              sampleSizes=sampleSizes, Z=Z,
+                                                                              n=n, h=h,
+                                                                              numberZones=numberZones)
+                xMatrixMCD_Modified = self.__filingMatrixX(xall=xVectorMCD_Modified, n=h)
+                tettaMCD_Modified_ = LSObject.LSMatrix(xMatrixMCD_Modified, yVectorMCD_Modified)
+                MCD_Mod_saver_.append(tettaMCD_Modified_.copy())
 
                 X = self.__filingMatrixX(xAll, n)
                 tettaLS = LSObject.LSMatrix(X, Y)
@@ -117,17 +180,40 @@ class StandForHGOutliers:
             extraObj = ex.ExtraThings()
             iLS.append(extraObj.MainCount(LSsaver, tetta, nCycle)[0])
             iMCD.append(extraObj.MainCount(MCDsaver_, tetta, nCycle)[0])
+            iMCD_Mod.append(extraObj.MainCount(MCDsaver_, tetta, nCycle)[0])
             iHuber.append(extraObj.MainCount(Hubersaver, tetta, nCycle)[0])
             iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, nCycle)[0])
 
             print(f" Outlier == {outlier}\n")
             outSaver.append(outlier)
-            outlier += 0.03
+            outlier += itteratorOitlier
 
-        self.__CreateGrafic(fileName=f"SFFM_FourMethods_{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}",
-                            path=f"grafics/{mode}/", outSaverX=outSaver,
-                            paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iHuber": iHuber, "iCauchy": iCauchy},
-                            about=["LS", "MCD", "Huber", "Cauchy"], xlabel="Выбросы", ylabel="Показатель точности")
+        self.__CreateGrafic(
+            fileName=f"С_выбросами_все_графики{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}",
+            path=f"grafics/{mode}/", outSaverX=outSaver,
+            paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iMCD_Mod": iMCD_Mod, "iHuber": iHuber, "iCauchy": iCauchy},
+            about=["МНК", "MCD", "MCD_Mod", "Хьюбер", "Коши"], xlabel="Выбросы", ylabel="Показатель точности")
+
+        self.__CreateThreeDistrGrafic(
+            fileName=f"С_выбросами_три_графика{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}_МНК_MCD_Хьюбер",
+            path=f"grafics/{mode}/", outSaverX=outSaver,
+            paramMethodsY={"iFirst": iLS, "iSecond": iMCD, "iThird": iHuber},
+            about=["МНК", "MCD", "Хьюбер"], xlabel="Выбросы",
+            ylabel="Показатель точности")
+
+        self.__CreateThreeDistrGrafic(
+            fileName=f"С_выбросами_три_графика{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}_МНК_MCD_Mod_Коши",
+            path=f"grafics/{mode}/", outSaverX=outSaver,
+            paramMethodsY={"iFirst": iLS, "iSecond": iMCD_Mod, "iThird": iCauchy},
+            about=["МНК", "MCD_Mod", "Коши"], xlabel="Выбросы",
+            ylabel="Показатель точности")
+        self.__CompareMCDsGrafics(
+            fileName=f"С_выбросами_три_графика{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}_МНК_MCD_Mod_Коши",
+            path=f"grafics/{mode}/", outSaverX=outSaver,
+            paramMethodsY={"iFirst": iMCD, "iSecond": iMCD_Mod},
+            about=["MCD", "MCD_Mod"], xlabel="Выбросы",
+            ylabel="Показатель точности")
+
 
     # Стандартная метод для расчёта показателя точности с выбросами
     # График не отрисовывается, но в файл записываются значения показателя точности
@@ -206,12 +292,15 @@ class StandForHGOutliers:
     # Нужен для демонстрации приближения графика MCD к графикам МНК и м-оценок
     def __FunctionForGraficWithN(self, params, mode):
         n = params["n"]
+        iteratorN = params["iteratorN"]
+        limitN = params["limitN"]
         tetta = params["tetta"]
         outlier = params["outlier"]
         nCycle = params["nCycle"]
+        numberZones = params["numberZones"]
 
         nSaver = []
-        iLS, iMCD, iCauchy, iHuber = [], [], [], []
+        iLS, iMCD, iMCD_Mod, iCauchy, iHuber = [], [], [], [], []
 
         factoryObject = FactoryForModels.FactoryForModels()
         modelForData = factoryObject.main_Factory(mode)
@@ -219,17 +308,19 @@ class StandForHGOutliers:
         LSObject = LS.LS()
         MObject = MEst.M_Estimators()
         mcdMethod_three_var = MCD_Three_variables.MCD()
+        mcd_For_N = MCD_ModForN.MCD_Modified()
 
-        while n <= 1000:
+        while n <= limitN:
             LSsaver = []
             MCDsaver_ = []
             Hubersaver = []
             Cauchysaver = []
+            MCD_Mod_saver_ = []
 
             params["n"] = n
             for i in range(nCycle):
-                Y, xAll = modelForData.Main_Model(params=params)
-                h = int(n * 0.75)
+                Y, xAll, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
+                h = int(n * 0.95)
 
                 hValues_1, hValues_2, yForH = [], [], []
                 for z in range(h):
@@ -244,6 +335,15 @@ class StandForHGOutliers:
                 tettaMCD_ = LSObject.LSMatrix(xMatrixMCD_, yVectorMCD_)
                 MCDsaver_.append(tettaMCD_.copy())
 
+                xVectorMCD_Modified, yVectorMCD_Modified = mcd_For_N.Main_MCD(X=xAll, Y=Y,
+                                                                                outlier=outlier,
+                                                                                dictionaryZones=dictionaryZones,
+                                                                                sampleSizes=sampleSizes, Z=Z,
+                                                                                n=n, h=h,
+                                                                                numberZones=numberZones)
+                xMatrixMCD_Modified = self.__filingMatrixX(xall=xVectorMCD_Modified, n=h)
+                tettaMCD_Modified_ = LSObject.LSMatrix(xMatrixMCD_Modified, yVectorMCD_Modified)
+                MCD_Mod_saver_.append(tettaMCD_Modified_.copy())
 
 
                 X = self.__filingMatrixX(xForH, h)
@@ -261,16 +361,17 @@ class StandForHGOutliers:
             extraObj = ex.ExtraThings()
             iLS.append(extraObj.MainCount(LSsaver, tetta, nCycle)[0])
             iMCD.append(extraObj.MainCount(MCDsaver_, tetta, nCycle)[0])
+            iMCD_Mod.append(extraObj.MainCount(MCD_Mod_saver_, tetta, nCycle)[0])
             iHuber.append(extraObj.MainCount(Hubersaver, tetta, nCycle)[0])
             iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, nCycle)[0])
 
             nSaver.append(n)
-            n += 50
+            n += iteratorN
 
         self.__CreateGrafic(fileName=f"SFFM_GraficForN_{mode}_n_{n}_nCycle_{nCycle}_points_{len(nSaver)}",
                             path=f"grafics/{mode}/", outSaverX=nSaver,
-                            paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iHuber": iHuber, "iCauchy": iCauchy},
-                            about=["LS", "MCD", "Huber", "Cauchy"], xlabel="Объём выборки", ylabel="Показатель точности")
+                            paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iMCD_Mod":iMCD_Mod, "iHuber": iHuber, "iCauchy": iCauchy},
+                            about=["МНК", "MCD", "MCD_Mod", "Хьюбер", "Коши"], xlabel="Объём выборки", ylabel="Показатель точности")
 
     def Main_StandForHGOutliers(self, params, mode, modeForGrafic):
         if modeForGrafic == "grafic":
