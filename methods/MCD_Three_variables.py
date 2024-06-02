@@ -105,7 +105,7 @@ class MCD:
             detS3 = np.linalg.det(S[i])
             detS4 = np.linalg.det(S[i + 1])
             i += 1
-            if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0):
+            if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0) or i > 15:
                 break
         # return S3
         return S[i], T[i]

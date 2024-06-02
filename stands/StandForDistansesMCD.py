@@ -1,5 +1,5 @@
-import mcd_method.MCDForStandDistances as MCD_
-import mcd_method.MCD_ModForStandDistances as MCD_Modified
+import methods.MCDForStandDistances as MCD_
+import methods.MCD_ModForStandDistances as MCD_Modified
 import math
 import LS
 import M_Estimators as MEst
@@ -71,7 +71,7 @@ class StandForDistansesMCD:
         mcdMethod_Modified = MCD_Modified.MCD_Modified()
 
         lims1 = [-1, 15]
-        lims2 = [-3, 10]
+        lims2 = [-6, 15]
 
         Y, xAll, xAll_h, y_res_h, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
 
@@ -94,7 +94,7 @@ class StandForDistansesMCD:
                                    xlabel="x2", ylabel="Y", lims=lims2)
 
         lims1 = [-1, 15]
-        lims2 = [-6, 10]
+        lims2 = [-6, 15]
         X_n, X_h, Y_n, di_n = mcdMethod_Modified.Main_MCD(X=xAll,Y=Y, dictionaryZones=dictionaryZones,
                                                                        sampleSizes=sampleSizes, Z=Z, n=n, h=h,
                                                                        numberZones=numberZones)

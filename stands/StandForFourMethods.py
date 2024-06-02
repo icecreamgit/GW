@@ -1,6 +1,6 @@
 import numpy as np
-import mcd_method.MCD_Three_variables as MCD_Three_variables
-import mcd_method.MCD_Modified as MCD_Modified
+import methods.MCD_Three_variables as MCD_Three_variables
+import methods.MCD_Modified as MCD_Modified
 
 import LS
 import M_Estimators as MEst

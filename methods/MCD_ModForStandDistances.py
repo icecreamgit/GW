@@ -24,16 +24,15 @@ class MCD_Modified:
         for i in range(h):
             index = Hnew[i]
             newList.append(Z[index][2])
-        return np.array(newList).reshape(h, 1)
+        return newList
 
-
-    def __H1Generate(self, h, n):
-        vector = [i for i in range(n)]
-        H1 = np.random.choice(vector, size=h, replace=False)
+    def __H1Generate(self, listOfIndexes, m):
+        H1 = np.random.choice(listOfIndexes, size=m, replace=False)
         return H1
 
-    def __H1Generate_Mod(self, listOfIndexes, m):
-        H1 = np.random.choice(listOfIndexes, size=m, replace=False)
+    def __H1Generate_mcd(self, h, n):
+        vector = [i for i in range(n)]
+        H1 = np.random.choice(vector, size=h, replace=False)
         return H1
 
     def __TS_Count(self, X, Y, H, h):
@@ -57,7 +56,6 @@ class MCD_Modified:
 
         T = np.array([T1mean, T2mean, T3mean])
         return T, S
-
     def __TS_Modified(self, Z, H, h):
         x1 = []
         x2 = []
@@ -79,7 +77,6 @@ class MCD_Modified:
 
         T = np.array([T1mean, T2mean, T3mean])
         return T, S
-
     def __Di_Modified(self, X, Y, Z, T, S, n):
         B, di = [], []
         indexesZones = []
@@ -143,15 +140,16 @@ class MCD_Modified:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            # dold = self.__Di(X, Y, T[i], S[i], n)
-            # dold.sort(key=KeyFuncion)
-            # Hnew = self.__ChooseHValues(dold, h)
-
             dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
             Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
-
             Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
+
+            # dold = self.__Di(X, Y, T[i], S[i], n)
+            # dold.sort(key=KeyFuncion)
+            # Hnew = self.__ChooseHValues(dold, h)
+            # Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
+
             T.append(Tnew)
             S.append(Snew)
 
@@ -171,15 +169,16 @@ class MCD_Modified:
         S.append(S3)
         i = 0
         while 1:
-            # dold = self.__Di(X, Y, T[i], S[i], n)
-            # dold.sort(key=KeyFuncion)
-            # Hnew = self.__ChooseHValues(dold, h)
-
-            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            dold = self.__Di(X, Y, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+            Hnew = self.__ChooseHValues(dold, h)
+            Tnew, Snew = self.__TS_Count(X, Y, Hnew, h)
 
-            Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
+            # dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            # dold.sort(key=KeyFuncion)
+            # Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+            # Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
+
             T.append(Tnew)
             S.append(Snew)
 
@@ -220,11 +219,11 @@ class MCD_Modified:
             sampleSizesH = sampleSizes
 
         while i < cStepNumber:
-            # H1 = self.__H1Generate(h, n)
-            H1 = list(chain(self.__H1Generate_Mod(dictionaryZones["1"], sampleSizesH[0]),
-                            self.__H1Generate_Mod(dictionaryZones["2"], sampleSizesH[1]),
-                            self.__H1Generate_Mod(dictionaryZones["3"], sampleSizesH[2]),
-                            self.__H1Generate_Mod(dictionaryZones["4"], sampleSizesH[3])))
+            H1 = self.__H1Generate_mcd(h, n)
+            # H1 = list(chain(self.__H1Generate(dictionaryZones["1"], sampleSizesH[0]),
+            #                 self.__H1Generate(dictionaryZones["2"], sampleSizesH[1]),
+            #                 self.__H1Generate(dictionaryZones["3"], sampleSizesH[2]),
+            #                 self.__H1Generate(dictionaryZones["4"], sampleSizesH[3])))
 
             T1, S1 = self.__TS_Modified(Z, H1, h)
             if math.isclose(np.linalg.det(S1), 0.0):
@@ -259,10 +258,15 @@ class MCD_Modified:
 
         diEnd = self.__Di_Modified(X, Y, Z, Tnew, Snew, n)
         diEnd.sort(key=KeyFuncion)
-        # HEnd = self.__ChooseHValues(diEnd, h)
-        HEnd = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
 
-        X_ = self.__ReturnListX_Mod(Z, HEnd, h)
-        Y_ = self.__ReturnListY_Mod(Z, HEnd, h)
-        return X_, Y_
+        HEnd_n = self.__ChooseHValues(diEnd, n)
+        HEnd_h = self.__ChooseHValues_Modified(diEnd, sampleSizesH, n)
+
+        X_n = self.__ReturnListX_Mod(Z, HEnd_n, n)
+        X_h = self.__ReturnListX_Mod(Z, HEnd_h, h)
+
+        Y_n = self.__ReturnListY_Mod(Z, HEnd_n, n)
+
+        di_n = self.__diTransform(diEnd)
+        return X_n, X_h, Y_n, di_n
 

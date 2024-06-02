@@ -147,13 +147,13 @@ class MCD_Modified:
         T.append(T1)
         S.append(S1)
         for i in range(2):
-            # dold = self.__Di(X, Y, T[i], S[i], n)
-            # dold.sort(key=KeyFuncion)
-            # Hnew = self.__ChooseHValues(dold, h)
-
-            dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            dold = self.__Di(X, Y, T[i], S[i], n)
             dold.sort(key=KeyFuncion)
-            Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
+            Hnew = self.__ChooseHValues(dold, h)
+
+            # dold = self.__Di_Modified(X, Y, Z, T[i], S[i], n)
+            # dold.sort(key=KeyFuncion)
+            # Hnew = self.__ChooseHValues_Modified(dold, sampleSizesH, n)
 
             Tnew, Snew = self.__TS_Modified(Z, Hnew, h)
             T.append(Tnew)
@@ -190,7 +190,7 @@ class MCD_Modified:
             detS3 = np.linalg.det(S[i])
             detS4 = np.linalg.det(S[i + 1])
             i += 1
-            if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0):
+            if math.isclose(detS4, detS3) or math.isclose(detS4, 0.0) or i > 20:
                 break
         # return S3
         return S[i], T[i], Hnew
@@ -204,18 +204,17 @@ class MCD_Modified:
     def __calibrateInputLenght(self, sampleSizes, n, h, outlier, numberZones):
 
         c = int((n - sampleSizes[0]) * (1. - outlier))
-        sampleSizes[0] *= (1. - outlier)
+        b = int(sampleSizes[0] * (1. - outlier))
         hForFourZones = int(c / (numberZones - 1))
 
-        sampleSizesH = [hForFourZones, hForFourZones, hForFourZones, hForFourZones]
+        sampleSizesH = [b, hForFourZones, hForFourZones, hForFourZones, hForFourZones]
 
         i = 0
-        while sum(sampleSizesH) < c:
+        while sum(sampleSizesH) < h:
             sampleSizesH[i] += 1
             i += 1
-            if i >= 4:
+            if i >= 5:
                 i = 0
-        sampleSizesH.insert(0, h)
         return sampleSizesH
     def Main_MCD(self, X, Y, outlier, dictionaryZones, sampleSizes, Z, n, h, numberZones):
         HiSaver10, HiSaver500, H1, dnew, Snew = [], [], [], [], [[], []]

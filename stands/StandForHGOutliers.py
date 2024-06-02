@@ -1,7 +1,7 @@
 import numpy as np
-import mcd_method.MCD_Three_variables as MCD_Three_variables
-import mcd_method.MCD_Modified as MCD_Modified
-import mcd_method.MCD_Mod_ForN as MCD_ModForN
+import methods.MCD_Three_variables as MCD_Three_variables
+import methods.MCD_Modified as MCD_Modified
+import methods.MCD_Mod_ForN as MCD_ModForN
 
 import LS
 import M_Estimators as MEst
@@ -180,7 +180,7 @@ class StandForHGOutliers:
             extraObj = ex.ExtraThings()
             iLS.append(extraObj.MainCount(LSsaver, tetta, nCycle)[0])
             iMCD.append(extraObj.MainCount(MCDsaver_, tetta, nCycle)[0])
-            iMCD_Mod.append(extraObj.MainCount(MCDsaver_, tetta, nCycle)[0])
+            iMCD_Mod.append(extraObj.MainCount(MCD_Mod_saver_, tetta, nCycle)[0])
             iHuber.append(extraObj.MainCount(Hubersaver, tetta, nCycle)[0])
             iCauchy.append(extraObj.MainCount(Cauchysaver, tetta, nCycle)[0])
 
@@ -192,26 +192,26 @@ class StandForHGOutliers:
             fileName=f"С_выбросами_все_графики{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}",
             path=f"grafics/{mode}/", outSaverX=outSaver,
             paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iMCD_Mod": iMCD_Mod, "iHuber": iHuber, "iCauchy": iCauchy},
-            about=["МНК", "MCD", "MCD_Mod", "Хьюбер", "Коши"], xlabel="Выбросы", ylabel="Показатель точности")
+            about=["МНК", "MCD", "MCD модификация", "М-оценки Хьюбер", "М-оценки Коши"], xlabel="Выбросы", ylabel="Показатель точности")
 
         self.__CreateThreeDistrGrafic(
             fileName=f"С_выбросами_три_графика{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}_МНК_MCD_Хьюбер",
             path=f"grafics/{mode}/", outSaverX=outSaver,
-            paramMethodsY={"iFirst": iLS, "iSecond": iMCD, "iThird": iHuber},
-            about=["МНК", "MCD", "Хьюбер"], xlabel="Выбросы",
+            paramMethodsY={"iFirst": iCauchy, "iSecond": iMCD, "iThird": iHuber},
+            about=["М-оценки Коши", "MCD", "М-оценки Хьюбер"], xlabel="Выбросы",
             ylabel="Показатель точности")
 
         self.__CreateThreeDistrGrafic(
             fileName=f"С_выбросами_три_графика{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}_МНК_MCD_Mod_Коши",
             path=f"grafics/{mode}/", outSaverX=outSaver,
-            paramMethodsY={"iFirst": iLS, "iSecond": iMCD_Mod, "iThird": iCauchy},
-            about=["МНК", "MCD_Mod", "Коши"], xlabel="Выбросы",
+            paramMethodsY={"iFirst": iCauchy, "iSecond": iMCD_Mod, "iThird": iHuber},
+            about=["М-оценки Коши", "MCD модификация", "М-оценки Хьюбера"], xlabel="Выбросы",
             ylabel="Показатель точности")
         self.__CompareMCDsGrafics(
-            fileName=f"С_выбросами_три_графика{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}_МНК_MCD_Mod_Коши",
+            fileName=f"С_выбросами_MCD_MCD_Mod_графика{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}",
             path=f"grafics/{mode}/", outSaverX=outSaver,
             paramMethodsY={"iFirst": iMCD, "iSecond": iMCD_Mod},
-            about=["MCD", "MCD_Mod"], xlabel="Выбросы",
+            about=["MCD", "MCD модификация"], xlabel="Выбросы",
             ylabel="Показатель точности")
 
 
@@ -298,6 +298,7 @@ class StandForHGOutliers:
         outlier = params["outlier"]
         nCycle = params["nCycle"]
         numberZones = params["numberZones"]
+        coefficient = 0.95
 
         nSaver = []
         iLS, iMCD, iMCD_Mod, iCauchy, iHuber = [], [], [], [], []
@@ -320,7 +321,7 @@ class StandForHGOutliers:
             params["n"] = n
             for i in range(nCycle):
                 Y, xAll, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
-                h = int(n * 0.95)
+                h = int(n * coefficient)
 
                 hValues_1, hValues_2, yForH = [], [], []
                 for z in range(h):
@@ -368,10 +369,24 @@ class StandForHGOutliers:
             nSaver.append(n)
             n += iteratorN
 
-        self.__CreateGrafic(fileName=f"SFFM_GraficForN_{mode}_n_{n}_nCycle_{nCycle}_points_{len(nSaver)}",
+        self.__CreateGrafic(fileName=f"SFFM_GraficForN_{mode}_n_{n}_nCycle_{nCycle}_points_{len(nSaver)}_",
                             path=f"grafics/{mode}/", outSaverX=nSaver,
                             paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iMCD_Mod":iMCD_Mod, "iHuber": iHuber, "iCauchy": iCauchy},
-                            about=["МНК", "MCD", "MCD_Mod", "Хьюбер", "Коши"], xlabel="Объём выборки", ylabel="Показатель точности")
+                            about=["МНК", "MCD", "MCD модификация", "М-оценки Хьюбера", "М-оценки Коши"],
+                            xlabel="Объём выборки", ylabel="Показатель точности")
+
+        self.__CreateThreeDistrGrafic(fileName=f"SFFM_GraficForN_{mode}_n_{n}_nCycle_{nCycle}_points_{len(nSaver)}_МНК_Хьюбер_Коши_",
+                            path=f"grafics/{mode}/", outSaverX=nSaver,
+                            paramMethodsY={"iFirst": iLS, "iSecond": iHuber,
+                                           "iThird": iCauchy},
+                            about=["МНК", "М-оценки Хьюбера", "М-оценки Коши"], xlabel="Объём выборки",
+                            ylabel="Показатель точности")
+        self.__CompareMCDsGrafics(
+            fileName=f"SFFM_GraficForN_{mode}_n_{n}_nCycle_{nCycle}_points_{len(nSaver)}_MCD_MCD_Mod_",
+            path=f"grafics/{mode}/", outSaverX=nSaver,
+            paramMethodsY={"iFirst": iMCD, "iSecond":iMCD_Mod},
+            about=["MCD", "MCD модификация"], xlabel="Объём выборки",
+            ylabel="Показатель точности")
 
     def Main_StandForHGOutliers(self, params, mode, modeForGrafic):
         if modeForGrafic == "grafic":
