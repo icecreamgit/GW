@@ -35,26 +35,26 @@ def main():
     n, tetta, p = 500, np.array([1., 1.5, 2.]), 3
     limit = 1.0
     outlier = 0.
-    nCycle = 50
+    nCycle = 100
     h = [252, 300, 350, 400, 450]
     hDistances = 300
     # grafic - отображение зависимости кси от выбросов
     # oneOutput - вывод в консоль значений показателей точности оценивания
     # для LS, MCD, M-estimators of Cauchy and Huber
-    modeForGrafic = "textOutput" # "textOutput" or "grafic" or "grafic_for_N"
+    modeForGrafic = "grafic" # "textOutput" or "grafic" or "grafic_for_N"
 
     # Only: "normal" "cauchy" "exponent" "normal_Mod" "cauchy_Mod" "exponent_Mod"
     # For I model (only normal) [[0.01, 0.1, 1, 2], [0.1, 0.25, 2, 3], [0.01, 0.1, 3, 5], [0.1, 0.5, 5., 7.]]
-    # emissionZones = [[0.01, 0.01, 0.25, 0.25], [0.25, 0.25, 5., 5.]]
+    # emissionZones = [[0.2, 0.2, 1., 1.]]
     # mode = "normal_Mod"
 
     # For II model (normal + cauchy) [0.01, 0.1, 1, 1], [0.1, 0.25, 1, 1], [0.25, 0.5, 1, 1]
-    emissionZones = [[0.25, 0.25, 1, 1]]
-    mode = "cauchy_Mod"
+    # emissionZones = [[0.35, 0.35, 1, 1]]
+    # mode = "cauchy_Mod"
 
-    # For III model (normal + exp) [0.01, 0.1, 0.5, 1], [0.1, 0.25, 1, 2], [0.01, 0.1, 2, 5]
-    # emissionZones = [[0.01, 0.1, 0.5, 1]]
-    # mode = "exponent_Mod"
+    # For III model (normal + exp) [0.01, 0.01, 0.5, 0.5], [0.25, 0.25, 0.5, 0.5], [0.25, 0.25, 1., 1.]
+    emissionZones = [[0.35, 0.35, 1., 1.]]
+    mode = "exponent_Mod"
 
 
     standForFourMethods = StandForFourMethods.StandForFourMethods()
@@ -75,9 +75,9 @@ def main():
     paramsForDistanses = {"n": n, "tetta": tetta, "outlier": outlier, "limit": limit,
               "emissionZones": emissionZones[0], "hi": hDistances}
 
-    WriteTextDistances(params, mode, modeForGrafic)
+    # WriteTextDistances(params, mode, modeForGrafic)
     # WriteGraficForNAndWithOutlier(paramsForN, mode, modeForGrafic)
-    # WriteGraficForStandartDistances(paramsForDistanses, mode)
+    WriteGraficForStandartDistances(paramsForDistanses, mode)
 
 
 

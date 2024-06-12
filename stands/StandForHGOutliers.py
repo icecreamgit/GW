@@ -192,13 +192,13 @@ class StandForHGOutliers:
             fileName=f"С_выбросами_все_графики{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}",
             path=f"grafics/{mode}/", outSaverX=outSaver,
             paramMethodsY={"iLS": iLS, "iMCD": iMCD, "iMCD_Mod": iMCD_Mod, "iHuber": iHuber, "iCauchy": iCauchy},
-            about=["МНК", "MCD", "MCD модификация", "М-оценки Хьюбер", "М-оценки Коши"], xlabel="Выбросы", ylabel="Показатель точности")
+            about=["МНК", "MCD", "MCD модификация", "М-оценки Хьюбера", "М-оценки Коши"], xlabel="Выбросы", ylabel="Показатель точности")
 
         self.__CreateThreeDistrGrafic(
             fileName=f"С_выбросами_три_графика{mode}_n_{n}_nCycle_{nCycle}_points_{len(outSaver)}_МНК_MCD_Хьюбер",
             path=f"grafics/{mode}/", outSaverX=outSaver,
             paramMethodsY={"iFirst": iCauchy, "iSecond": iMCD, "iThird": iHuber},
-            about=["М-оценки Коши", "MCD", "М-оценки Хьюбер"], xlabel="Выбросы",
+            about=["М-оценки Коши", "MCD", "М-оценки Хьюбера"], xlabel="Выбросы",
             ylabel="Показатель точности")
 
         self.__CreateThreeDistrGrafic(

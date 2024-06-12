@@ -32,7 +32,7 @@ class StandForDistansesMCD:
         colors = self.__FindDublicates(xAll, x)
 
         plt.plot()
-        plt.xlabel(xlabel)  # ось абсцисс
+        plt.xlabel(xlabel, loc="left")  # ось абсцисс
         plt.ylabel(ylabel)  # ось
         plt.xlim()
         plt.ylim(lims[0], lims[1])
@@ -45,7 +45,7 @@ class StandForDistansesMCD:
         colors = self.__FindDublicates(xAll, x)
 
         plt.plot()
-        plt.xlabel(xlabel)  # ось абсцисс
+        plt.xlabel(xlabel, loc="left")  # ось абсцисс
         plt.ylabel(ylabel)  # ось
         plt.xlim()
         plt.ylim(lims[0], lims[1])
@@ -70,8 +70,8 @@ class StandForDistansesMCD:
         mcdMethod_ = MCD_.MCDForStandDistances()
         mcdMethod_Modified = MCD_Modified.MCD_Modified()
 
-        lims1 = [-1, 15]
-        lims2 = [-6, 15]
+        lims1 = [-1, 20]
+        lims2 = [-2, 10]
 
         Y, xAll, xAll_h, y_res_h, dictionaryZones, sampleSizes, Z = modelForData.Main_Model(params=params)
 
@@ -79,38 +79,45 @@ class StandForDistansesMCD:
 
         self.__CreateGraficsForMCD_Di(fileName=f"SFD__diForx1 mcd {mode}", path="grafics/",
                                    xAll=X_n[0], x=X_h[0], di=di_n,
-                                   xlabel="x1", ylabel="di", lims=lims1)
+                                   xlabel="б)                                                       "
+                                          "x1", ylabel="di", lims=lims1)
 
         self.__CreateGraficsForMCD_Di(fileName=f"SFD__diForx2 mcd {mode}", path="grafics/",
                                    xAll=X_n[1], x=X_h[1], di=di_n,
-                                   xlabel="x2", ylabel="di", lims=lims1)
+                                   xlabel="б)                                                       "
+                                          "x2", ylabel="di", lims=lims1)
 
         self.__CreateGraficsForMCD_Y(fileName=f"SFD__Y_Forx1 mcd {mode}", path="grafics/",
                                    xAll=X_n[0], x=X_h[0], y=Y_n,
-                                   xlabel="x1", ylabel="Y", lims=lims2)
+                                   xlabel="б)                                                       "
+                                          "x1", ylabel="Y", lims=lims2)
 
         self.__CreateGraficsForMCD_Y(fileName=f"SFD__Y_Forx2 mcd {mode}", path="grafics/",
                                    xAll=X_n[1], x=X_h[1], y=Y_n,
-                                   xlabel="x2", ylabel="Y", lims=lims2)
+                                   xlabel="б)                                                       "
+                                          "x2", ylabel="Y", lims=lims2)
 
-        lims1 = [-1, 15]
-        lims2 = [-6, 15]
+
         X_n, X_h, Y_n, di_n = mcdMethod_Modified.Main_MCD(X=xAll,Y=Y, dictionaryZones=dictionaryZones,
                                                                        sampleSizes=sampleSizes, Z=Z, n=n, h=h,
                                                                        numberZones=numberZones)
 
         self.__CreateGraficsForMCD_Di(fileName=f"SFD__diForx1 mcd_modified {mode}", path="grafics/",
                                       xAll=X_n[0], x=X_h[0], di=di_n,
-                                      xlabel="x1", ylabel="di", lims=lims1)
+                                      xlabel="a)                                                       "
+                                             "x1", ylabel="di", lims=lims1)
 
         self.__CreateGraficsForMCD_Di(fileName=f"SFD__diForx2 mcd_modified {mode}", path="grafics/",
                                       xAll=X_n[1], x=X_h[1], di=di_n,
-                                      xlabel="x2", ylabel="di", lims=lims1)
+                                      xlabel="а)                                                       "
+                                             "x2", ylabel="di", lims=lims1)
 
         self.__CreateGraficsForMCD_Y(fileName=f"SFD__Y_Forx1 mcd_modified {mode}", path="grafics/",
                                      xAll=X_n[0], x=X_h[0], y=Y_n,
-                                     xlabel="x1", ylabel="Y", lims=lims2)
+                                     xlabel="а)                                                       "
+                                            "x1", ylabel="Y", lims=lims2)
 
         self.__CreateGraficsForMCD_Y(fileName=f"SFD__Y_Forx2 mcd_modified {mode}", path="grafics/",
                                      xAll=X_n[1], x=X_h[1], y=Y_n,
-                                     xlabel="x2", ylabel="Y", lims=lims2)
+                                     xlabel="а)                                                       "
+                                            "x2", ylabel="Y", lims=lims2)
